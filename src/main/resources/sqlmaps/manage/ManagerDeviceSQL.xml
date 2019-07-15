@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerDeviceSQL">
+    <typeAlias alias="Device" type="com.threey.guard.manage.domain.Device"/>
+    <resultMap id="DeviceResult" class="com.threey.guard.manage.domain.Device">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="DEVICE_ID" property="deviceId" jdbcType="VARCHAR" />
+        <result column="DEVICE_TYPE" property="deviceType" jdbcType="INTEGER" />
+        <result column="DEVICE_STATUS" property="deviceStatus" jdbcType="INTEGER" />
+        <result column="RESIDENTAIL" property="residentail" jdbcType="VARCHAR" />
+        <result column="BUILD" property="build" jdbcType="VARCHAR" />
+        <result column="UNIT" property="unit" jdbcType="VARCHAR" />
+        <result column="DEVICE_TEL" property="deviceTel" jdbcType="VARCHAR" />
+        <result column="DEVICE_PHONE" property="devicePhone" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <!--设备管理-->
+    <insert id="insert" parameterClass="Device">
+        INSERT INTO mj_device(device_id,device_type,device_status,device_tel,device_phone,create_user)
+        VALUES (#deviceId#,#deviceType#,#deviceStatus#,#deviceTel#,#devicePhone#,#createUser#)
+    </insert>
+    <select id="queryOne" parameterClass="java.lang.String" resultMap="DeviceResult">
+        select d.id,d.device_id,d.device_type,d.device_status,d.device_tel,d.device_phone,
+  ifnull((select m.name from mj_residential m where m.id in(select residentail_id from mj_build_unit where type=2 and id=d.unit)),'未绑定') residentail,
+  ifnull((select b.name from mj_build_unit b where b.type=1 and b.id in(select parent_id from mj_build_unit where type=2 and id=d.unit)),'未绑定') build,
+  ifnull((select t.name from mj_build_unit t where t.type=2 and t.id=d.unit),'未绑定') unit
+from mj_device d where d.id = #id#
+    </select>
+    <select id="getDeviceByUnit" parameterClass="java.lang.String" resultClass="Device">
+        select d.id,d.device_id deviceId,d.device_type deviceType,d.device_status deviceStatus,d.device_tel deviceTel,d.device_phone devicePhone
+        from mj_device d where d.unit = #unitId#
+    </select>
+    <select id="getDeviceById" parameterClass="java.lang.String" resultClass="Device">
+        select d.id,d.device_id deviceId,d.device_type deviceType,d.device_status deviceStatus,d.unit,d.device_tel deviceTel,d.device_phone devicePhone
+        from mj_device d where d.device_id = #deviceId#
+    </select>
+    <select id="getDeviceByResidentail" parameterClass="java.lang.String" resultClass="Device">
+        select d.id,d.device_id deviceId,d.device_type deviceType,d.device_status deviceStatus,d.device_tel deviceTel,d.device_phone devicePhone
+from mj_device d where d.unit in (select id from mj_build_unit where type = 2 and residentail_id =  #residentail#)
+    </select>
+    <select id="listByMap" resultMap="DeviceResult" parameterClass="java.util.HashMap">
+        select d.id,d.device_id,d.device_type,d.device_status,d.device_tel,d.device_phone,
+        ifnull((select m.name from mj_build_unit u,mj_residential m where m.id=u.residentail_id and u.type=1 and u.id in(select parent_id from mj_build_unit where type=2 and id=d.unit)),'未绑定') residentail,
+        ifnull((select b.name from mj_build_unit b where b.type=1 and b.id in(select parent_id from mj_build_unit where type=2 and id=d.unit)),'未绑定') build,
+        ifnull((select t.name from mj_build_unit t where t.type=2 and t.id=d.unit),'未绑定') unit
+        from mj_device d
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="deviceId">
+                d.device_id like '%$deviceId$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="deviceType">
+                d.device_type = #deviceType#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="deviceStatus">
+                d.device_status = #deviceStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="residentailName">
+                d.unit in(select t2.id from mj_residential t1,mj_build_unit t2 where t2.TYPE =2 and t1.id=t2.residentail_id and t1.name like '%$residentailName$%')
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                d.create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                d.create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                d.create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                d.create_user IN (SELECT mid FROM manager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <select id="countByMap" parameterClass="java.util.HashMap" resultClass="int">
+        SELECT count(1)
+        from mj_device d
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="deviceId">
+                d.device_id like '%$deviceId$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="deviceType">
+                d.device_type = #deviceType#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="deviceStatus">
+                d.device_status = #deviceStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="residentailName">
+                d.unit in(select t2.id from mj_residential t1,mj_build_unit t2 where t2.TYPE =2 and t1.id=t2.residentail_id and t1.name like '%$residentailName$%')
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                d.create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                d.create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                d.create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                d.create_user IN (SELECT mid FROM manager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <update id="update" parameterClass="Device">
+        UPDATE mj_device
+        <dynamic prepend="SET">
+            <isNotEmpty prepend="," property="deviceStatus">
+                device_status = #deviceStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="deviceType">
+                device_type = #deviceType#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="deviceTel">
+                device_tel = #deviceTel#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="devicePhone">
+                device_phone = #devicePhone#
+            </isNotEmpty>
+        </dynamic>
+        WHERE id = #id#
+    </update>
+    <delete id="delete" parameterClass="java.lang.String">
+        DELETE FROM mj_device WHERE id = #id#
+    </delete>
+
+
+    <select id="listunbind" resultMap="DeviceResult" parameterClass="java.util.HashMap">
+        select d.id,d.device_id,d.device_type,d.device_status,d.device_tel,d.device_phone,
+        ifnull((select m.name from mj_build_unit u,mj_residential m where m.id=u.parent_id and u.type=0 and u.id in(select parent_id from mj_build_unit where type=1 and id=d.unit)),'未绑定') residentail,
+        ifnull((select b.name from mj_build_unit b where b.type=0 and b.id in(select parent_id from mj_build_unit where type=1 and id=d.unit)),'未绑定') build,
+        ifnull((select t.name from mj_build_unit t where t.type=1 and t.id=d.unit),'未绑定') unit
+        from mj_device d where d.unit is null
+            <isNotEmpty prepend="AND" property="deviceId">
+                d.device_id = #deviceId#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="deviceType">
+                d.device_type = #deviceType#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="deviceStatus">
+                d.device_status = #deviceStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="residentailName">
+                d.unit in(select t2.id from mj_residential t1,mj_build_unit t2 where t2.TYPE =2 and t1.id=t2.residentail_id and t1.name like '%$residentailName$%')
+            </isNotEmpty>
+    </select>
+    <select id="countunbind" parameterClass="java.util.HashMap" resultClass="int">
+        SELECT count(1)
+        from mj_device d
+        where d.unit is null
+            <isNotEmpty prepend="AND" property="deviceId">
+                d.device_id = #deviceId#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="deviceType">
+                d.device_type = #deviceType#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="deviceStatus">
+                d.device_status = #deviceStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="residentailName">
+                d.unit in(select t2.id from mj_residential t1,mj_build_unit t2 where t2.TYPE =2 and t1.id=t2.residentail_id and t1.name like '%$residentailName$%')
+            </isNotEmpty>
+    </select>
+
+    <update id="bindDevice" parameterClass="java.util.HashMap">
+        UPDATE mj_device set unit = #unitId# where id = #deviceId#
+    </update>
+    <update id="unBindDevice" parameterClass="java.util.HashMap">
+        UPDATE mj_device set unit=null where  id = #deviceId#
+    </update>
+
+    <insert id ="insertBatchDevice" parameterClass="java.util.List" >
+        <![CDATA[
+         INSERT INTO mj_device(device_id,device_type,device_status,device_tel,device_phone)
+            values
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].deviceId:VARCHAR}#, #{list[].deviceType:INTEGER}#,#{list[].deviceStatus:INTEGER}#,#{list[].deviceTel:VARCHAR}#,#{list[].devicePhone:VARCHAR}#
+            )
+            ]]>
+        </iterate>
+    </insert>
+
+    <insert id ="insertBatchDeviceTemp" parameterClass="java.util.List" >
+        <![CDATA[
+         INSERT INTO mj_device_temp(device_id,device_type,device_status,device_tel,device_phone,create_user)
+            values
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].deviceId:VARCHAR}#, #{list[].deviceType:INTEGER}#,#{list[].deviceStatus:INTEGER}#,#{list[].deviceTel:VARCHAR}#,#{list[].devicePhone:VARCHAR}#,#{list[].createUser:VARCHAR}#
+            )
+            ]]>
+        </iterate>
+    </insert>
+    <insert id ="batchDeviceTemp">
+        INSERT INTO mj_device(device_id,device_type,device_status,device_tel,device_phone,create_user)
+        SELECT device_id,device_type,device_status,device_tel,device_phone,create_user
+        FROM mj_device_temp WHERE device_id NOT IN (SELECT device_id FROM mj_device)
+    </insert>
+</sqlMap>

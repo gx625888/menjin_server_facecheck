@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+        "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="CommonSQL">
+
+	<select id="getCurrentDateTime" resultClass="java.lang.String">
+		SELECT CURRENT_TIMESTAMP
+	</select>
+	
+	<update id="updateSystemPropertiesVauleByCode" parameterClass="java.util.HashMap">
+		update system_properties 
+		<dynamic prepend="set" >
+		   <isNotNull prepend="," property="name" >
+             name=#name#
+           </isNotNull>
+           <isNotNull prepend="," property="value" >
+             value=#value#
+           </isNotNull>
+		</dynamic>
+		where code=#code# and mid = #mid# 
+	</update>
+	
+	<select id="getSystemPropertiesByCode" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		select * from system_properties where code=#code# and mid = #mid# 
+	</select>
+	<select id="getSystemProperties" parameterClass="java.util.HashMap" resultClass="com.threey.guard.base.domain.SystemProperties">
+		select 
+		CODE as code,
+		NAME as name,
+		VALUE as value,
+		MID as mid,
+		SYN_START_TIME as  synStartTime,
+		IS_AUTO as isAuto,
+		FREQUENCY as frequency,
+		SYN_END_TIME as synEndTime
+		from system_properties where code=#code# and mid = #mid# 
+	</select>
+	<select id="findPageStyle" parameterClass="java.lang.String" resultClass="com.threey.guard.base.domain.PageStyle">
+		select * from page_style where mid=#mid# 
+	</select>
+	
+	<select id="findCatalog" parameterClass="java.lang.String" resultClass="com.threey.guard.base.domain.Catalog">
+		select * from page_catalog where mid=#mid# 
+	</select>
+	
+	<insert id="addPcatalog" parameterClass="java.util.HashMap">
+    insert into page_catalog (MID, CATALOG) values (#mid#, #catalog#)
+   </insert>
+   
+   <insert id="addPtype" parameterClass="java.util.HashMap">
+    insert into page_style (MID, STYLE) values (#mid#, #style#)
+   </insert>
+   
+    <delete id="delSerialid">
+		delete from s_serialid 
+	</delete>
+	
+	 <delete id="delGainnumber">
+		delete from gain_number 
+	</delete>
+	
+	<typeAlias alias="SystemProperties" type="com.threey.guard.base.domain.SystemProperties" />
+	<resultMap id="SystemPropertiesMap1" class="SystemProperties">
+		<result property="code" column="code" jdbcType="VARCHAR" />
+		<result property="name" column="name" jdbcType="VARCHAR" />
+		<result property="value" column="value" jdbcType="VARCHAR" />
+		<result property="synStartTime" column="synStartTime" jdbcType="VARCHAR" />
+		<result property="isAuto" column="isAuto" jdbcType="VARCHAR" />
+		<result property="frequency" column="frequency" jdbcType="VARCHAR" />
+		<result property="synEndTime" column="synEndTime" jdbcType="VARCHAR" />
+		<result property="mid" column="mid" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="getProperties" resultMap="SystemPropertiesMap1">
+	select  
+		sp.CODE as code,
+		sp.NAME as name ,
+		sp.VALUE as value,
+		sp.SYN_START_TIME as synStartTime ,
+		sp.IS_AUTO as isAuto,
+		sp.FREQUENCY as frequency,
+		sp.SYN_END_TIME as synEndTime,
+		sp.MID as mid
+	from system_properties sp 
+	where sp.CODE in
+		<iterate conjunction="," open="(" close=")">
+			#[]# 
+		</iterate>
+	</select>
+	<insert id="addSystemProperties" parameterClass="SystemProperties">
+		insert into system_properties(CODE,NAME,VALUE,SYN_START_TIME,IS_AUTO,FREQUENCY,SYN_END_TIME,MID)
+		values(#code:VARCHAR#,#name:VARCHAR#,#value:VARCHAR#,#synStartTime:VARCHAR#,#isAuto:CHAR#,#frequency:VARCHAR#,#synEndTime:VARCHAR#,#mid:VARCHAR#)
+	</insert>
+	<delete id="delSystemProperties" parameterClass="SystemProperties" >
+		delete from system_properties where CODE=#code:VARCHAR# and MID=#mid:VARCHAR#
+	</delete> 
+	
+	
+	<insert id="addImg" parameterClass="java.util.HashMap">
+		insert into given(id,img,mid) values(#id#,#img#,#mid#)
+	</insert>
+	
+	<update id="upImg" parameterClass="java.util.HashMap">
+		update given 
+		<dynamic prepend="set" >
+		   <isNotNull prepend="," property="img" >
+             img=#img#
+           </isNotNull>
+		</dynamic>
+		where id=#id# and mid = #mid# 
+	</update>
+	
+	
+	<select id="findImg" parameterClass="java.util.HashMap" resultClass="java.lang.String">
+		select img from given where mid=#mid#  and id=#id#
+	</select>
+
+	<select id="getNextSeq" resultClass="java.lang.Long" parameterClass="java.util.HashMap">
+		select nextval(#seqName#) val
+	</select>
+</sqlMap>

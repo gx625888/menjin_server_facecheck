@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="MenuSQL" >
+<typeAlias alias="Menu" type="com.threey.guard.base.domain.Menu" />
+<!-- <resultMap id="MenuMap" class="com.wicp.console.model.menu.Menu" >
+    <result column="id" property="id" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="parentId" property="parentId" jdbcType="VARCHAR" />
+    <result column="url" property="url" jdbcType="VARCHAR" />
+    <result column="sort" property="sort" jdbcType="VARCHAR" />
+    <result column="createTime" property="createTime" jdbcType="VARCHAR" />
+    <result column="delFlag" property="delFlag" jdbcType="VARCHAR" />
+    <result column="level" property="level" jdbcType="VARCHAR" />
+  </resultMap> -->
+<select id="findMenuByParentId" parameterClass="Menu" resultClass="Menu">
+      SELECT DISTINCT p.PRIVILEGE_CODE as code,p.PRIVILEGE_NAME as name,mu.modularId ,mu.url,mu.sort,mu.parentId as parentId
+       FROM privilege p left join menu mu on mu.modularId=p.MODULAR_ID
+		WHERE 1=1
+    and p.PRIVILEGE_CODE in (select code from menu where 1=1
+  <isNotEmpty prepend="and" property="modularId">
+    parentId = #modularId#
+    </isNotEmpty>
+    )
+    ORDER BY sort
+</select>
+
+<select id="findMenu" parameterClass="Menu" resultClass="Menu">
+   SELECT p.PRIVILEGE_CODE as code,p.PRIVILEGE_NAME as name,mu.modularId ,mu.url,mu.sort FROM r_privilege_user rpu 
+		left JOIN privilege p ON rpu.PRIVILEGE_CODE = p.PRIVILEGE_CODE
+        left join menu mu on mu.modularId=p.MODULAR_ID
+		WHERE rpu.MID = #mid# AND rpu.USER_ID = #userId#
+    and p.PRIVILEGE_CODE in (select code from menu where 1=1
+    <isNotEmpty prepend="and" property="modularId">
+    parentId = #modularId#
+    </isNotEmpty>
+    )
+    
+    ORDER BY sort
+</select>
+
+<select id="findMenuByParentIdOrModularId" parameterClass="Menu" resultClass="Menu">
+   select  id, name,  code,parentId,url,sort,modularId
+    from wicp.menu 
+   where  delflag= 0
+    <isNotEmpty prepend="and" property="modularId">
+    (modularId=#modularId# or parentId=#modularId#)
+    </isNotEmpty>
+    ORDER BY sort
+</select>
+
+<select id="findMenuByModularId" parameterClass="Menu" resultClass="Menu">
+   select  id, name,  code,parentId,url,sort,level,modularId
+    from wicp.menu 
+   where  delflag= 0
+     <isNotEmpty prepend="and" property="modularId">
+    modularId = #modularId#
+    </isNotEmpty>
+</select>
+<!-- 新增 -->
+	<insert id="addMenu" parameterClass="Menu">
+		INSERT INTO menu(id,name,code,parentId,url,sort,createTime,delFlag,modularId) 
+VALUES (#id#,#name#,#code#,#parentId#,#url#,#sort#,#createTime#,#delFlag#,#modularId#)
+	</insert>
+	
+	<!-- 删除 -->
+	<delete id="delMenu" parameterClass="Menu">
+		DELETE FROM menu WHERE id = #id# 
+	</delete>
+
+<!-- 修改 -->
+<update id="updateMenu" parameterClass="Menu">
+	  update menu set name=#name#,parentId=#parentId#,url=#url#,modularId=#modularId# where id=#id#
+	</update>
+	
+	
+<select id="findRootNodes" parameterClass="Menu" resultClass="Menu">
+	select id, name, code,parentId,url,sort,level,modularId
+	from wicp.menu where delFlag= 0 and parentId is null
+</select>
+</sqlMap>

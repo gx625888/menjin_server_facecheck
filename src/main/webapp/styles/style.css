@@ -1,0 +1,48 @@
+@charset "utf-8";
+/* CSS Document */
+table{
+	width:100%;
+	border-radius:20px;
+	}
+.hd,.bd,.ft{
+	display:table-cell;
+	vertical-align:middle;
+	white-space:nowrap;
+	word-break:break-all;
+	word-wrap:break-word;
+	}
+.w_primary{
+	width:2000px;
+	}
+input{
+	width:100%;
+	}
+.primary{
+	padding-left:10px;
+	}
+.primary:first-child{
+	padding-left:0;
+	}
+.box{
+	margin-bottom:15px;
+	}
+
+.fileUpload {
+	position: relative;
+	overflow: hidden;
+	margin: 0px;
+}
+
+.fileUpload input.upload {	position: absolute;
+	top: 0;
+	right: 0;
+	margin: 0;
+	padding: 0;
+	font-size: 20px;
+	cursor: pointer;
+	opacity: 0;
+	filter: alpha(opacity=0);
+}
+.name{
+	width:100px;
+	}

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="RoleSql" >
+<typeAlias alias="Role" type="com.threey.guard.base.domain.Role" />
+<typeAlias alias="Menu" type="com.threey.guard.base.domain.Menu" />
+    <typeAlias alias="Privilege" type="com.threey.guard.base.domain.Privilege"/>
+<select id="queryOne" parameterClass="java.lang.String" resultClass="Role">
+      select id,name,createTime from role where id = #id#
+</select>
+
+<select id="count" parameterClass="Role" resultClass="java.lang.Integer">
+
+    select count(1) from role where delFlag =0
+    <isNotEmpty prepend="and" property="name">
+        name like '%$name$%'
+    </isNotEmpty>
+</select>
+
+<select id="list" parameterClass="Role" resultClass="Role">
+   select  id,name,createTime
+    from  role
+   where  delflag= 0
+    <isNotEmpty prepend="and" property="name">
+     name like '%$name$%'
+    </isNotEmpty>
+    ORDER BY createTime desc
+</select>
+
+
+<!-- 新增 -->
+	<insert id="insert" parameterClass="Role">
+		INSERT INTO role(id,name,createTime,delFlag)
+VALUES (#id#,#name#,#createTime#,#delFlag#)
+	</insert>
+	<!-- 删除 -->
+	<delete id="delete" parameterClass="java.lang.String">
+		DELETE FROM role WHERE id = #id#
+	</delete>
+    <!-- 逻辑删除 -->
+    <update id="fackDel" parameterClass="java.lang.String">
+	  update role set delFlag=1 where id=#id#
+	</update>
+
+<!-- 修改 -->
+<update id="update" parameterClass="Role">
+	  update role set name=#name# where id=#id#
+</update>
+
+    <select id="listByUser" parameterClass="java.lang.String" resultClass="Role">
+        select role.id ,role.name ,user_role.user_id modularId
+        from role left join
+        (select * from user_role where  user_role.user_id = #userId# ) user_role
+        on role.id =user_role.role_id
+        where role.delFlag =0
+        ORDER BY modularId desc,createTime desc
+    </select>
+
+
+    <insert id ="insertUserRoleBatch" parameterClass="java.util.List" >
+        <![CDATA[
+         insert into user_role
+             (role_id, user_id)
+            values
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].roleId:VARCHAR}#, #{list[].userId:VARCHAR}#
+            )
+            ]]>
+        </iterate>
+    </insert >
+
+    <delete id="deleteUserRoles" parameterClass="java.lang.String">
+		DELETE FROM user_role WHERE user_id = #userId#
+	</delete>
+
+
+
+
+    <select id="listMenuByRole" parameterClass="java.lang.String" resultClass="Menu">
+            select menu.id,menu.name,menu.parentId,menu.level,menu_role.role_id modularId from menu
+            left join (select * from menu_role where menu_role.role_id = #roleId#) menu_role
+            on menu.id = menu_role.menu_id
+            where menu.delFlag =0
+        ORDER BY menu.level ,menu.sort
+    </select>
+
+
+    <insert id ="insertRoleMenus" parameterClass="java.util.List" >
+        <![CDATA[
+         insert into menu_role
+             (role_id, menu_id)
+            values
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].roleId:VARCHAR}#, #{list[].menuId:VARCHAR}#
+            )
+            ]]>
+        </iterate>
+    </insert >
+
+    <delete id="deleteRoleMenus" parameterClass="java.lang.String">
+		DELETE FROM menu_role WHERE role_id = #roleId#
+	</delete>
+
+    <select id="listPrivilegeByRole" parameterClass="java.lang.String" resultClass="Privilege">
+          select p.PRIVILEGE_CODE privilegeCode,p.MODULAR_ID modularId , p.PRIVILEGE_NAME privilegeName,pr.role_id hasPrivilege
+from privilege p
+  left join (select * from privilege_role where role_id = #roleId#) pr
+  on p.PRIVILEGE_CODE = pr.privilege
+    </select>
+
+
+    <insert id ="insertRolePrivilege" parameterClass="java.util.List" >
+        <![CDATA[
+         insert into privilege_role
+             (role_id, privilege)
+            values
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].roleId:VARCHAR}#, #{list[].privilege:VARCHAR}#
+            )
+            ]]>
+        </iterate>
+    </insert >
+
+    <delete id="deleteRolePrivilege" parameterClass="java.lang.String">
+		DELETE FROM privilege_role WHERE role_id = #roleId#
+	</delete>
+</sqlMap>

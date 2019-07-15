@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManageBuildUnit" >
+<typeAlias alias="BuildUnit" type="com.threey.guard.manage.domain.BuildUnit" />
+<select id="queryOne" parameterClass="java.lang.String" resultClass="BuildUnit">
+      select  id,name,type, parent_id parentId, residentail_id residentailId
+    from  mj_build_unit where id = #id#
+</select>
+</sqlMap>

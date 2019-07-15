@@ -1,0 +1,38 @@
+.tableCon{border-left:#d6d6d6 1px solid; border-bottom:#d6d6d6 1px solid;width: 98%;font-family: 'SimSun'}
+.tableCon tr.tit td { background:#d4cece; font-size:16px; text-align:center;}
+.tableCon tr.ov td {background:#f1f1f1;}
+.tableCon table td {height:28px; line-height:28px; border-right:#d6d6d6 1px solid; text-align:center;}
+.page{background:#f0f0f0;border-bottom:#dcdcdc 1px solid;border-left:#dcdcdc 1px solid;border-right:#dcdcdc 1px solid; margin:0 10px; padding:4px 10px; text-align:right; font-size:14px;}
+
+    .className{
+  line-height:30px;
+  height:30px;
+  width:70px;
+  color:#ffffff;
+  background-color:#3ba354;
+  font-size:16px;
+  font-weight:normal;
+  font-family:Arial;
+  border:0px solid #dcdcdc;
+  -webkit-border-top-left-radius:3px;
+  -moz-border-radius-topleft:3px;
+  border-top-left-radius:3px;
+  -webkit-border-top-right-radius:3px;
+  -moz-border-radius-topright:3px;
+  border-top-right-radius:3px;
+  -webkit-border-bottom-left-radius:3px;
+  -moz-border-radius-bottomleft:3px;
+  border-bottom-left-radius:3px;
+  -webkit-border-bottom-right-radius:3px;
+  -moz-border-radius-bottomright:3px;
+  border-bottom-right-radius:3px;
+  -moz-box-shadow: inset 0px 0px 0px 0px #ffffff;
+  -webkit-box-shadow: inset 0px 0px 0px 0px #ffffff;
+  box-shadow: inset 0px 0px 0px 0px #ffffff;
+  text-align:center;
+  display:inline-block;
+  text-decoration:none;
+}
+.className:hover{
+  background-color:#1c9439;
+}

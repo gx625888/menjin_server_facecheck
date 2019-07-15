@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManageHouseSql" >
+<typeAlias alias="HouseUnit" type="com.threey.guard.manage.domain.HouseUnit" />
+<select id="queryOne" parameterClass="java.lang.String" resultClass="HouseUnit">
+      select  id,name,unit_id unitId,phone,phone_two phoneTwo ,phone_thr phoneThr,status
+    from  mj_house_unit where id = #id#
+</select>
+<select id="getHouseByUnitAndName" parameterClass="java.util.HashMap" resultClass="HouseUnit">
+    select hu.id,hu.name,hu.unit_id unitId,
+           hu.phone,hu.phone_two phoneTwo, hu.phone_thr phoneThr, hu.status
+     from mj_build_unit u, mj_build_unit b, mj_house_unit hu
+     where u.parent_id=b.id and hu.unit_id = u.id
+     and b.id = #unitId#
+     and hu.name = #name#;
+</select>
+
+<select id="count" parameterClass="HouseUnit" resultClass="java.lang.Integer">
+
+    select count(1) from mj_house_unit where delFlag =0
+    <isNotEmpty prepend="and" property="name">
+        name like '%$name$%'
+    </isNotEmpty>
+</select>
+
+<select id="list" parameterClass="HouseUnit" resultClass="HouseUnit">
+   select  id,name,unit_id unitId,phone,phone_two phoneTwo,phone_thr phoneThr,status,(select count(1) from r_house_person where r_house_person.house_id = mj_house_unit.id) level
+    from  mj_house_unit
+   where unit_id = #unitId#
+    <isNotEmpty prepend="and" property="name">
+     name like '%$name$%'
+    </isNotEmpty>
+    ORDER BY id
+</select>
+
+
+<!-- 新增 -->
+	<insert id="insert" parameterClass="HouseUnit">
+		INSERT INTO mj_house_unit(id,name,unit_id,phone,phone_two,status,phone_thr)
+VALUES (#id#,#name#,#unitId#,#phone#,#phoneTwo#,#status#,#phoneThr#)
+	</insert>
+	<!-- 删除 -->
+	<delete id="delete" parameterClass="java.lang.String">
+		DELETE FROM mj_house_unit WHERE id = #id#
+	</delete>
+    <!-- 逻辑删除 -->
+    <update id="fackDel" parameterClass="java.lang.String">
+	  update mj_house_unit set delFlag=1 where id=#id#
+	</update>
+
+<!-- 修改 -->
+<update id="update" parameterClass="HouseUnit">
+	  update mj_house_unit set name=#name# ,phone=#phone# ,phone_two = #phoneTwo#,phone_thr = #phoneThr#,status = #status# where id=#id#
+</update>
+
+
+</sqlMap>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerPersonSQL">
+    <typeAlias alias="Person" type="com.threey.guard.manage.domain.Person"/>
+    <resultMap id="PersonResult" class="com.threey.guard.manage.domain.Person">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+        <result column="PHONE" property="phone" jdbcType="VARCHAR" />
+        <result column="TYPE" property="type" jdbcType="INTEGER" />
+        <result column="ADDRESS" property="address" jdbcType="VARCHAR" />
+        <result column="SEX" property="sex" jdbcType="INTEGER" />
+        <result column="CARD_TYPE" property="cardType" jdbcType="INTEGER" />
+        <result column="CARD_NO" property="cardNo" jdbcType="VARCHAR" />
+        <result column="BIRTHDAY" property="birthday" jdbcType="VARCHAR" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+        <result column="COUNTRY" property="country" jdbcType="VARCHAR" />
+        <result column="NATION" property="nation" jdbcType="VARCHAR" />
+        <result column="LIVE_TYPE" property="liveType" jdbcType="VARCHAR" />
+    </resultMap>
+    <resultMap id="QueryResidentailByPersonResult" class="com.threey.guard.manage.domain.QueryResidentailByPerson">
+        <result column="PERSON" property="person" jdbcType="VARCHAR" />
+        <result column="HOUSE" property="house" jdbcType="VARCHAR" />
+        <result column="RESIDENTAIL" property="residentail" jdbcType="VARCHAR" />
+        <result column="BUILD" property="build" jdbcType="INTEGER" />
+        <result column="UNIT" property="unit" jdbcType="VARCHAR" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+    </resultMap>
+    <resultMap id="queryCardByPersonResult" class="com.threey.guard.manage.domain.Card">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="CARD_ID" property="cardId" jdbcType="VARCHAR" />
+        <result column="INVAILID_DATE" property="invalidDate" jdbcType="VARCHAR" />
+        <result column="CARD_STATUS" property="cardStatus" jdbcType="INTEGER" />
+    </resultMap>
+    <!--居民管理-->
+    <insert id="insert" parameterClass="Person">
+        INSERT INTO mj_person(id,name,phone,type,address,sex,card_type,card_no,birthday,country,nation,create_user)
+        VALUES (#id#,#name#,#phone#,#type#,#address#,#sex#,#cardType#,#cardNo#,#birthday#,#country#,#nation#,#createUser#)
+    </insert>
+    <insert id="saveHousePerson" parameterClass="java.util.HashMap">
+        INSERT INTO r_house_person(house_id, person_id,live_type)
+        VALUES (#houseId#,#personId#,#liveType#)
+    </insert>
+    <select id="queryOne" parameterClass="java.lang.String" resultMap="PersonResult">
+        select * from mj_person where id = #id#
+    </select>
+    <select id="listByMap" resultMap="PersonResult" parameterClass="java.util.HashMap">
+        SELECT * FROM mj_person m
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="id">
+                m.id = #id#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="name">
+                m.NAME LIKE '%$name$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="cardNo">
+                m.CARD_NO = #cardNo#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="phone">
+                m.PHONE = #phone#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="houseId">
+               m.id in (select person_id from r_house_person where house_id = #houseId#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="house">
+                m.id not in (select person_id from r_house_person where house_id = #house#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <select id="countByMap" parameterClass="java.util.HashMap" resultClass="int">
+        SELECT count(*) FROM mj_person m
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="id">
+                m.id = #id#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="name">
+                m.NAME LIKE '%$name$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="cardNo">
+                m.CARD_NO = #cardNo#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="phone">
+                m.PHONE = #phone#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="houseId">
+                m.id in (select person_id from r_house_person where house_id = #houseId#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="house">
+                m.id not in (select person_id from r_house_person where house_id = #house#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <update id="update" parameterClass="Person">
+        UPDATE mj_person
+        <dynamic prepend="SET">
+            <isNotEmpty prepend="," property="name">
+                name = #name#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="phone">
+                phone = #phone#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="type">
+                type = #type#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="address">
+                address = #address#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="sex">
+                sex = #sex#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="cardType">
+                card_type = #cardType#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="cardNo">
+                card_no = #cardNo#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="birthday">
+                birthday = #birthday#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="country">
+                country = #country#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="nation">
+                nation = #nation#
+            </isNotEmpty>
+        </dynamic>
+        WHERE id = #id#
+    </update>
+    <delete id="delete" parameterClass="java.lang.String">
+        DELETE mj_person,r_person_card,r_house_person
+        FROM mj_person
+        left join r_house_person  on mj_person.id = r_house_person.person_id
+        left join r_person_card on mj_person.id = r_person_card.person_id  WHERE mj_person.id = #personId#
+    </delete>
+    <insert id ="insertBatchPerson" parameterClass="java.util.List" >
+        <![CDATA[
+         insert into mj_person
+             (id,name,phone,type,address,sex,card_type,card_no,birthday,country,nation,create_user)
+            values
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].id:VARCHAR}#, #{list[].name:VARCHAR}#,#{list[].phone:VARCHAR}#, #{list[].type:INTEGER}#,
+              #{list[].address:VARCHAR}#, #{list[].sex:INTEGER}#, #{list[].cardType:INTEGER}#, #{list[].cardNo:VARCHAR}#
+              , #{list[].birthday:VARCHAR}#, #{list[].country:VARCHAR}#, #{list[].nation:VARCHAR}#,#{list[].createUser:VARCHAR}#
+            )
+            ]]>
+        </iterate>
+    </insert>
+    <select id="queryResidentailByPerson" resultMap="QueryResidentailByPersonResult" parameterClass="java.lang.String">
+        SELECT a.person_id person,a.house_id house,(SELECT name FROM mj_residential WHERE id = d.residentail_id) residentail,(SELECT name FROM mj_build_unit WHERE id = d.parent_id) build,
+        d.name unit,b.name
+        FROM r_house_person a,mj_house_unit b,mj_build_unit c,(SELECT * FROM mj_build_unit WHERE type=2) d,mj_person e
+        WHERE a.house_id = b.id AND b.unit_id = c.id AND c.parent_id = d.id AND a.person_id = e.id AND e.id=#id#
+    </select>
+    <select id="countResidentailByPerson" resultClass="int" parameterClass="java.lang.String">
+        SELECT count(1)
+        FROM r_house_person a,mj_house_unit b,mj_build_unit c,(SELECT * FROM mj_build_unit WHERE type=2) d,mj_person e
+        WHERE a.house_id = b.id AND b.unit_id = c.id AND c.parent_id = d.id AND a.person_id = e.id AND e.id=#id#
+    </select>
+    <select id="queryCardByPerson" resultMap="queryCardByPersonResult" parameterClass="java.lang.String">
+        SELECT a.id,a.CARD_ID,date_format(a.INVAILID_DATE,'%Y-%m-%d')INVAILID_DATE,a.CARD_STATUS FROM mj_card a,r_person_card b WHERE b.CARD_ID = a.CARD_ID AND b.person_id=#id#
+    </select>
+    <select id="countCardByPerson" resultClass="int" parameterClass="java.lang.String">
+        SELECT count(1) FROM mj_card a,r_person_card b WHERE b.CARD_ID = a.CARD_ID AND b.person_id=#id#
+    </select>
+    <delete id="deleteBandInfo" parameterClass="java.util.Map">
+        DELETE FROM r_house_person WHERE person_id=#person# and house_id=#house#
+    </delete>
+
+    <select id="listHousePerson" resultMap="PersonResult" parameterClass="java.util.HashMap">
+        SELECT m.*,r.live_type FROM mj_person m, r_house_person r
+        WHERE m.id=r.person_id
+        AND r.house_id=#houseId#
+    </select>
+</sqlMap>

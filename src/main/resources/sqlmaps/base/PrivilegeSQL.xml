@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="PrivilegeSQL">
+	<typeAlias alias="Privilege" type="com.threey.guard.base.domain.Privilege"/>
+	<typeAlias alias="ManagerUser" type="com.threey.guard.base.domain.ManagerUser"/>
+	<typeAlias alias="UserPrivilege" type="com.threey.guard.base.domain.UserPrivilege"/>
+	<typeAlias alias="Menu" type="com.threey.guard.base.domain.Menu" />
+	
+	<resultMap id="PrivilegeResult" class="Privilege">
+		<result column="PRIVILEGE_CODE" property="privilegeCode" jdbcType="VARCHAR"/>
+		<result column="PRIVILEGE_NAME" property="privilegeName" jdbcType="VARCHAR"/>
+		<result column="MODULAR_ID" property="modularId" jdbcType="VARCHAR"/>
+		<result column="MODULAR_NAME" property="modularName" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<!-- 系统根管理员所有权限查询  -->
+<select id="getSystemAllPrivileges" resultMap ="PrivilegeResult">
+		
+     SELECT p.PRIVILEGE_CODE,p.PRIVILEGE_NAME,mu.modularId as MODULAR_ID,mu.name as MODULAR_NAME FROM privilege p 
+    left join menu mu on mu.modularId=p.MODULAR_ID 
+<!-- SELECT p.PRIVILEGE_CODE,p.PRIVILEGE_NAME,m.MODULAR_ID,m.MODULAR_NAME FROM privilege p 
+		LEFT JOIN modular m ON p.MODULAR_ID = m.MODULAR_ID -->
+    
+	</select> 
+	
+	<!-- 通过判断一键同步账单数的的权限Code来获取需要同步账单数的mid -->
+	<select id="selUserPrivilege" parameterClass="java.lang.String" resultClass="UserPrivilege">
+		select 
+			MID as mid,
+			PRIVILEGE_CODE as privilegeCode
+			from r_privilege_user
+			where PRIVILEGE_CODE = #privilegeCode:VARCHAR#
+	</select>
+	<!-- 商家权限查询 -->
+	 <select id="getPrivileges" parameterClass="java.util.Map" resultClass="Privilege">
+		 <!--SELECT p.PRIVILEGE_CODE,p.PRIVILEGE_NAME,mu.modularId as MODULAR_ID,mu.name as MODULAR_NAME FROM r_privilege_user rpu
+         INNER JOIN privilege p ON rpu.PRIVILEGE_CODE = p.PRIVILEGE_CODE
+         inner join menu mu on mu.modularId=p.MODULAR_ID
+         WHERE rpu.MID = #MID# AND rpu.USER_ID = #USERID#-->
+
+          <isEmpty property="MID">
+              select pr.PRIVILEGE privilegeCode from privilege_role pr,user_role ur
+              where pr.role_id = ur.role_id and ur.user_id = #USERID#
+          </isEmpty>
+          <isNotEmpty property="MID">
+              select PRIVILEGE_CODE privilegeCode from privilege
+          </isNotEmpty>
+
+ <!-- and p.PRIVILEGE_CODE in (select code from menu) -->
+		
+	</select> 
+	
+	<!-- 给某个商家的某个用户赋予某个权限 -->
+	<insert id="addUserPrivilege" parameterClass="java.util.Map">
+		INSERT INTO r_privilege_user(MID,USER_ID,PRIVILEGE_CODE) VALUES (#MID#,#USERID#,#PRIVILEGECODE#)
+	</insert>
+	
+	<!-- 根据商户号、用户号删除所有权限 -->
+	<delete id="delUserPrivilege" parameterClass="java.util.Map">
+		DELETE FROM r_privilege_user WHERE MID = #MID# and USER_ID = #USERID#
+	</delete>
+	
+	<!-- 后台配置-权限查询 -->
+	<select id="getAllPrivileges" parameterClass="Privilege" resultMap ="PrivilegeResult">
+		SELECT p.PRIVILEGE_CODE,p.PRIVILEGE_NAME,m.MODULAR_ID,m.MODULAR_NAME FROM privilege p 
+		LEFT JOIN modular m ON p.MODULAR_ID = m.MODULAR_ID 
+		<dynamic prepend="where">
+		   <isNotEmpty prepend="and" property="privilegeCode">
+		     p.PRIVILEGE_CODE like '%$privilegeCode$%'
+		   </isNotEmpty>
+		   <isNotEmpty prepend="and" property="modularId">
+		     p.MODULAR_ID =#modularId#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="and" property="privilegeName">
+		     p.PRIVILEGE_NAME like '%$privilegeName$%'
+		   </isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="count" parameterClass="Privilege" resultClass="java.lang.Integer">
+	   select count(p.PRIVILEGE_CODE) from privilege p JOIN modular m ON p.MODULAR_ID = m.MODULAR_ID 
+	   <dynamic prepend="where">
+	      <isNotEmpty prepend="and" property="privilegeCode">
+		     PRIVILEGE_CODE like '%$privilegeCode$%'
+		   </isNotEmpty>
+		   <isNotEmpty prepend="and" property="modularId">
+		     p.MODULAR_ID =#modularId#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="and" property="privilegeName">
+		     PRIVILEGE_NAME like '%$privilegeName$%'
+		   </isNotEmpty>
+	   </dynamic>
+	</select>
+	
+	<delete id="delPrivilege" parameterClass="Privilege" >
+	  delete from privilege 
+	  <dynamic prepend="WHERE">
+	  	<isNotEmpty property="privilegeCode" prepend="AND">
+	  		PRIVILEGE_CODE=#privilegeCode#
+	  	</isNotEmpty>
+	  	
+	  	<isNotEmpty property="modularId" prepend="AND">
+	  		MODULAR_ID=#modularId#
+	  	</isNotEmpty>
+	  
+	  </dynamic>
+	</delete>
+	
+	<update id="updatePrivilege" parameterClass="Privilege">
+	  update privilege set PRIVILEGE_NAME=#privilegeName#,MODULAR_ID=#modularId# where PRIVILEGE_CODE=#privilegeCode#
+	</update>
+	
+	<insert id="addPrivilege" parameterClass="Privilege">
+	  insert privilege (PRIVILEGE_CODE,PRIVILEGE_NAME,MODULAR_ID) value(#privilegeCode#,#privilegeName#,#modularId#)
+	</insert>
+	
+	<!--<resultMap class="com.wicp.console.model.Modular" id="ModularResult">
+		<result property="modular_id" column="MODULAR_ID"/>
+		<result property="modular_name" column="MODULAR_NAME"/>
+	</resultMap>
+	<select id="getModularList" resultMap="ModularResult">
+	   select MODULAR_ID,MODULAR_NAME from modular
+	</select>-->
+	
+	<resultMap id="PrivilegeMap" class="Privilege">
+		<result column="PRIVILEGE_CODE" property="privilegeCode" jdbcType="VARCHAR"/>
+		<result column="PRIVILEGE_NAME" property="privilegeName" jdbcType="VARCHAR"/>
+		<result column="MODULAR_ID" property="modularId" jdbcType="VARCHAR"/>
+	</resultMap>
+	<select id="checkCode" parameterClass="java.lang.String" resultMap="PrivilegeMap">
+	  select PRIVILEGE_CODE,PRIVILEGE_NAME,MODULAR_ID from privilege where PRIVILEGE_CODE=#privilegeCode#
+	</select>
+
+	<select id="getMenu" parameterClass="java.util.HashMap" resultClass="Menu">
+		<isEmpty property="userId">
+			select * from menu
+			where delFlag =0
+		</isEmpty>
+		<isNotEmpty property="userId">
+			select * from menu where id in
+				(select distinct  menu_id from user_role,menu_role
+					where user_role.role_id = menu_role.role_id and user_role.user_id =  #userId#) and delFlag=0
+		</isNotEmpty>
+
+		ORDER BY level ,sort
+	</select>
+</sqlMap>

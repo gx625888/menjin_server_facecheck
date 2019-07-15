@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerClientApiSQL">
+
+    <typeAlias alias="HouseUnit" type="com.threey.guard.manage.domain.HouseUnit" />
+    <typeAlias alias="Person" type="com.threey.guard.manage.domain.Person" />
+    <typeAlias alias="HousePhoneData" type="com.threey.guard.api.domain.HousePhoneData" />
+    <resultMap id="GetAdsResult" class="com.threey.guard.api.domain.Ads">
+        <result column="RESOURCE_TYPE" property="type" jdbcType="INTEGER" />
+        <result column="FILE_PATH" property="url" jdbcType="VARCHAR" />
+    </resultMap>
+    <resultMap id="GetAccountsResult" class="com.threey.guard.api.domain.AccountData">
+        <result property="id" column="ID" jdbcType="VARCHAR"/>
+        <result property="card" column="CARD" jdbcType="VARCHAR"/>
+        <result property="no" column="NO" jdbcType="VARCHAR"/>
+        <result property="phone" column="PHONE" jdbcType="VARCHAR"/>
+        <result property="isAdd" column="ISADD" jdbcType="INT"/>
+        <result property="jurisdiction" column="JURISDICTION" jdbcType="INT"/>
+    </resultMap>
+    <resultMap id="DeviceArea" class="com.threey.guard.api.domain.DeviceArea">
+        <result property="unit" column="UNIT" jdbcType="VARCHAR"/>
+        <result property="build" column="BUILD" jdbcType="VARCHAR"/>
+        <result property="residentail" column="RESIDENTAIL" jdbcType="VARCHAR"/>
+        <result property="buildName" column="buildName" jdbcType="VARCHAR"/>
+        <result property="unitName" column="unitName" jdbcType="VARCHAR"/>
+    </resultMap>
+    <resultMap id="CallInfo" class="com.threey.guard.api.domain.CallInfo">
+        <result property="phoneOne" column="PHONE" jdbcType="VARCHAR"/>
+        <result property="phoneTwo" column="PHONE_TWO" jdbcType="VARCHAR"/>
+        <result property="deviceTel" column="DEVICE_TEL" jdbcType="VARCHAR"/>
+        <result property="devicePhone" column="DEVICE_PHONE" jdbcType="VARCHAR"/>
+        <result property="openType" column="OPEN_TYPE" jdbcType="INT"/>
+    </resultMap>
+    <typeAlias alias="TelRecord" type="com.threey.guard.api.domain.TelRecord"/>
+    <!--版本升级-->
+    <select id="versonUpdate" parameterClass="java.lang.String" resultClass="java.lang.String">
+        SELECT a.url FROM mj_app_verson a,mj_device b,mj_build_unit c
+        WHERE b.unit=c.id AND c.type=2 AND c.residentail_id=a.residentail AND b.device_id=#deviceId#
+    </select>
+
+    <!--广告信息-->
+    <select id="getAds" parameterClass="java.lang.String" resultMap="GetAdsResult">
+        SELECT a.* FROM mj_resource a,r_unit_resource b,mj_device c
+        WHERE c.unit = b.unit_id AND b.resource_id = a.id AND c.device_id=#deviceId#
+    </select>
+
+    <!--上传开门信息-->
+    <insert id="openRecord" parameterClass="java.util.Map">
+        INSERT INTO mj_open_record(card_no,open_type,picture,device_id,
+        person_id,remark,residentail,build,unit,house,open_id
+        ,build_name,unit_name,house_name,persion_name,persion_phone )
+        VALUES (#cardNo#,#openType#,#picture#,#deviceId#,#personId#,#remark#,
+        #residentail#,#build#,#unit#,#house#,#openId#,
+        #buildName#,#unitName#,#houseName#,#personName#,#personPhone#)
+    </insert>
+    <select id="getPersonId" parameterClass="java.lang.String" resultClass="Person">
+      select id,name,sex,card_type,type ,phone from mj_person where id = (
+        SELECT person_id FROM r_person_card WHERE card_id = #cardId#)
+    </select>
+
+    <!--上传告警信息-->
+    <insert id="warnRecord" parameterClass="java.util.Map">
+        INSERT INTO mj_warn_record(device_id,warn_type)
+        VALUES (#deviceId#,#warnType#)
+    </insert>
+
+    <!--获取用户信息 (SELECT phone FROM mj_person WHERE id=e.person_id) phone-->
+    <select id="getAccounts" parameterClass="java.lang.String" resultMap="GetAccountsResult">
+        SELECT e.person_id id,f.CARD_ID card,
+        (CASE WHEN f.CARD_STATUS=2 THEN 1 WHEN f.CARD_STATUS=3 THEN 1 WHEN e.flag=1 THEN 1 ELSE 0 END) isAdd,
+        d.name no,'' phone,d.status-1 JURISDICTION
+        FROM mj_device a,mj_build_unit b,r_house_person c,mj_house_unit d,r_person_card e,mj_card f
+        WHERE d.unit_id = b.id AND b.parent_id=a.unit AND d.id = c.house_id AND e.person_id=c.person_id AND e.CARD_ID = f.CARD_ID
+        AND a.device_id=#devinceId#
+    </select>
+
+
+    <!-- ifnull(mh.phone,'') p,ifnull(mh.phone_two,'') pp,ifnull(mh.phone_thr,'') ppp-->
+    <select id="getHousePhoneData" parameterClass="java.lang.String" resultClass="HousePhoneData">
+        select mh.id,0 isAdd,mh.name no,
+         CONCAT(ifnull(mh.phone,''),',',ifnull(mh.phone_two,''),',',ifnull(mh.phone_thr,'')) p
+        ,status-1 jurisdiction
+        from mj_device md,mj_house_unit mh,mj_build_unit mb
+        where mb.parent_id = md.unit and mh.unit_id = mb.id
+        AND md.device_id=#devinceId#
+    </select>
+
+    <!--验证密码-->
+    <select id="getPwd" parameterClass="java.lang.String" resultClass="java.lang.String">
+        SELECT CONCAT(pwd ,',',user_id)  pwd   FROM mj_device_pwd WHERE flag=0 AND device_id=#devinceId# order by create_date desc
+    </select>
+    <update id="updatePwd" parameterClass="java.util.Map">
+        UPDATE mj_device_pwd set flag=1 WHERE device_id=#deviceId# AND pwd = #pwd#
+    </update>
+    <update id="invalidPwd" parameterClass="java.lang.Integer">
+        UPDATE mj_device_pwd set flag=2 where  timestampdiff(MINUTE,create_date,CURRENT_TIMESTAMP) >=#time# and flag=0
+    </update>
+
+    <insert id="insertPwd" parameterClass="java.util.HashMap">
+        insert into mj_device_pwd (device_id,pwd,user_id) values (#deviceId#,#pwd#,#userId#)
+    </insert>
+
+    <select id="getAreaByDevice" parameterClass="java.lang.String" resultMap="DeviceArea">
+        SELECT a.unit,b.parent_id build,b.residentail_id residentail ,b.name unitName ,
+        (select name from mj_build_unit where mj_build_unit.id = b.parent_id ) buildName
+        FROM mj_device a,mj_build_unit b WHERE a.unit=b.id AND a.device_id=#deviceId#;
+    </select>
+
+    <select id="getHouseByPerson" parameterClass="java.lang.String" resultClass="java.lang.String">
+        SELECT house_id from r_house_person WHERE person_id = #id#
+    </select>
+    <select id="getHouseByPersonAndDevice" parameterClass="java.util.HashMap" resultClass="HouseUnit">
+        SELECT h.id,h.name,0 status, 0 level from mj_house_unit h
+        WHERE h.id in (select r_house_person.house_id from r_house_person where r_house_person.person_id=#personId#)
+        and h.unit_id = (select mj_device.unit from mj_device where mj_device.device_id = #deviceId#)
+    </select>
+
+    <select id="getTelByDevice" parameterClass="java.lang.String" resultClass="java.lang.String">
+        SELECT CONCAT(device_tel ,',',device_phone) FROM mj_device WHERE device_id =#deviceId#
+    </select>
+
+    <select id="getCallInfo" parameterClass="java.util.Map" resultMap="CallInfo">
+        SELECT t.phone,t.phone_two,e.device_tel,e.device_phone,t.status OPEN_TYPE FROM mj_house_unit t,
+    (SELECT a.device_phone,a.device_tel,b.id FROM mj_device a,mj_build_unit b WHERE a.unit=b.parent_id AND device_id=#device#) e
+    WHERE t.unit_id = e.id AND t.name=#house#
+    </select>
+
+    <insert id="InsertCallRecord" parameterClass="java.util.Map">
+        INSERT INTO mj_tel_record(device_id,deivce_tel,phone,house,call_code,call_id,device_phone,call_num,open_type)
+        VALUES (#deviceId#,#deviceTel#,#phone#,#house#,#callCode#,#callId#,#devicePhone#,#callNum#,#openType#)
+    </insert>
+
+    <select id="queryTelRecord" parameterClass="java.lang.String" resultClass="TelRecord">
+      select id,device_id deviceId,deivce_tel deviceTel,phone,house,call_back_info callBackInfo
+      ,device_phone devicePhone,call_num callNum,open_type openType
+      from mj_tel_record where call_id = #callId# and is_open !=1
+    </select>
+
+    <update id="updateTelRecord" parameterClass="TelRecord">
+        update mj_tel_record set is_open = #isOpen# ,call_back_info = #callBackInfo# where id = #id#
+    </update>
+
+    <update id="updateTelRecordById" parameterClass="java.util.HashMap">
+        update mj_tel_record set call_num=#callNum# where call_id = #callId#
+    </update>
+
+    <!--上传呼叫信息-->
+    <insert id="callRecord" parameterClass="java.util.Map">
+        INSERT INTO mj_call_record(house_no,picture,device_id)
+        VALUES (#cardNo#,#picture#,#deviceId#)
+    </insert>
+
+
+</sqlMap>

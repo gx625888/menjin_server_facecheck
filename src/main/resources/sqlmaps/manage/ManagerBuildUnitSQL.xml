@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerBuildUnitSQL">
+    <typeAlias alias="BuildUnit" type="com.threey.guard.manage.domain.BuildUnit"/>
+    <resultMap id="BuildUnitResult" class="com.threey.guard.manage.domain.BuildUnit">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+        <result column="PARENT_ID" property="parentId" jdbcType="VARCHAR" />
+        <result column="TYPE" property="type" jdbcType="INTEGER" />
+    </resultMap>
+
+    <!--楼栋单元管理-->
+    <insert id="insert" parameterClass="BuildUnit">
+        INSERT INTO mj_build_unit(id,name,parent_id,type,residentail_id)
+        VALUES (#id#,#name#,#parentId#,#type#, #residentailId#)
+    </insert>
+    <select id="findBuildUnit" resultClass="BuildUnit" parameterClass="BuildUnit">
+        SELECT * FROM mj_build_unit m
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="id">
+                m.id = #id#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="name">
+                m.NAME LIKE '%$name$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="parentId">
+                m.PARENT_ID = #parentId#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="type">
+                m.TYPE = #type#
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <update id="updateBuildUnit" parameterClass="BuildUnit">
+        UPDATE mj_build_unit
+        <dynamic prepend="SET">
+            <isNotEmpty prepend="," property="name">
+                name = #name#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="parentId">
+                parent_id = #parentId#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="type">
+                type = #type#
+            </isNotEmpty>
+        </dynamic>
+        WHERE id = #id#
+    </update>
+
+
+    <select id="getAllBuildUnitByResidentailId" resultClass="BuildUnit" parameterClass="java.lang.String">
+        SELECT id,name,parent_id parentId,type,residentail_id residentailId  FROM mj_build_unit where residentail_id = #residentailId#
+    </select>
+
+    <select id="getAllBuildByResidentailId" resultClass="BuildUnit" parameterClass="java.lang.String">
+        SELECT id,name,parent_id parentId,type,residentail_id residentailId
+         FROM mj_build_unit where residentail_id = #residentailId# and type =1
+    </select>
+
+    <select id="queyNextLevalUnit" resultClass="BuildUnit" parameterClass="java.lang.String">
+        SELECT id,name,parent_id parentId,type,residentail_id residentailId  FROM mj_build_unit where parent_id = #id#
+    </select>
+    <select id="queyUnbindUnit" resultClass="BuildUnit" parameterClass="java.lang.String">
+        SELECT id,name,parent_id parentId,type,residentail_id residentailId  FROM mj_build_unit
+        where parent_id = #id# and id not in (select unit from mj_device where unit is not null)
+    </select>
+    <delete id="delete" parameterClass="java.lang.String">
+        DELETE FROM mj_build_unit WHERE id = #id#
+    </delete>
+
+    <select id="queryOne" parameterClass="java.lang.String" resultClass="BuildUnit">
+      select id,name,parent_id,type,residentail_id from mj_build_unit where id = #id#
+    </select>
+
+    <select id="getHouseCount" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+        SELECT count(1) FROM mj_house_unit WHERE unit_id=#id#
+    </select>
+
+    <select id="getBuildUnitCount" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+        SELECT count(1) FROM mj_build_unit WHERE parent_id=#id#
+    </select>
+
+    <select id="getDeviceCount" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+        SELECT count(1) FROM mj_device WHERE unit=#id#
+    </select>
+
+    <insert id ="insertbatchBuild" parameterClass="java.util.List" >
+        <![CDATA[
+         INSERT INTO mj_build_unit(id,name,parent_id,type)
+        VALUES
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].id:INTEGER}#, #{list[].name:VARCHAR}#,#{list[].parentId:INTEGER}#,#{list[].type:INTEGER}#
+            )
+            ]]>
+        </iterate>
+    </insert >
+    <insert id ="insertbatchPerson" parameterClass="java.util.List" >
+        <![CDATA[
+         insert into mj_person
+             (id,name,phone,type,address,sex,card_type,card_no,birthday,country,nation,create_user)
+            values
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].id:VARCHAR}#, #{list[].name:VARCHAR}#,#{list[].phone:VARCHAR}#, #{list[].type:INTEGER}#,
+              #{list[].address:VARCHAR}#, #{list[].sex:INTEGER}#, #{list[].cardType:INTEGER}#, #{list[].cardNo:VARCHAR}#
+              , #{list[].birthday:VARCHAR}#, #{list[].country:VARCHAR}#, #{list[].nation:VARCHAR}#, #{list[].createUser:VARCHAR}#
+            )
+            ]]>
+        </iterate>
+    </insert >
+    <insert id ="insertbatchHouse" parameterClass="java.util.List" >
+        <![CDATA[
+         INSERT INTO mj_house_unit(id,name,unit_id,phone,phone_two,status)
+        VALUES
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].id:INT}#, #{list[].name:VARCHAR}#,
+              #{list[].unitId:INTEGER}#,#{list[].phone:VARCHAR}#,#{list[].phoneTwo:VARCHAR}#, #{list[].status:INTEGER}#
+            )
+            ]]>
+        </iterate>
+    </insert >
+    <insert id ="insertbatchHousePerson" parameterClass="java.util.List" >
+        <![CDATA[
+         INSERT INTO r_house_person(house_id, person_id,live_type)
+        VALUES
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].houseId:VARCHAR}#, #{list[].personId:VARCHAR}#,#{list[].liveType:VARCHAR}#
+            )
+            ]]>
+        </iterate>
+    </insert >
+
+</sqlMap>

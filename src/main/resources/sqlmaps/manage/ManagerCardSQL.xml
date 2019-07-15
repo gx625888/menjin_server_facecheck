@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerCardSQL">
+    <typeAlias alias="AddCard" type="com.threey.guard.manage.domain.AddCard"/>
+    <typeAlias alias="Card" type="com.threey.guard.manage.domain.Card"/>
+    <resultMap id="AddCardResult" class="com.threey.guard.manage.domain.AddCard">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="RESIDENTAIL" property="residentail" jdbcType="VARCHAR" />
+        <result column="COMMUNITY" property="community" jdbcType="INTEGER" />
+        <result column="SEND" property="sendNum" jdbcType="INTEGER" />
+        <result column="REST" property="addNum" jdbcType="INTEGER" />
+    </resultMap>
+
+    <resultMap id="CardResult" class="com.threey.guard.manage.domain.Card">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="CARD_ID" property="cardId" jdbcType="VARCHAR" />
+        <result column="CARD_TYPE" property="cardType" jdbcType="INTEGER" />
+        <result column="INVAILID_DATE" property="invalidDate" jdbcType="VARCHAR" />
+        <result column="CARD_STATUS" property="cardStatus" jdbcType="INTEGER" />
+        <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+        <result column="RESIDENTAIL" property="residentail" jdbcType="VARCHAR" />
+        <result column="PERSON" property="person" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <resultMap id="BandCardResult" class="com.threey.guard.manage.domain.Card">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="CARD_ID" property="cardId" jdbcType="VARCHAR" />
+        <result column="CARD_TYPE" property="cardType" jdbcType="INTEGER" />
+        <result column="INVAILID_DATE" property="invalidDate" jdbcType="VARCHAR" />
+        <result column="CARD_STATUS" property="cardStatus" jdbcType="INTEGER" />
+        <result column="PERSON" property="person" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <resultMap id="BandCardResultNew" class="com.threey.guard.manage.domain.Card">
+        <result column="PERSON_ID" property="personId" jdbcType="VARCHAR" />
+        <result column="PERSON_NAME" property="person" jdbcType="VARCHAR" />
+        <result column="CARD_ID" property="cardId" jdbcType="VARCHAR" />
+        <result column="IS_BAND" property="remark" jdbcType="VARCHAR" />
+        <result column="CARD_STATUS" property="cardStatus" jdbcType="INTEGER" />
+        <result column="RESIDENTAIL" property="residentail" jdbcType="VARCHAR" />
+        <result column="RESIDENTAIL_ID" property="residentailId" jdbcType="VARCHAR" />
+        <result column="PERSON_CARD" property="personCard" jdbcType="VARCHAR" />
+        <result column="PERSON_PHONE" property="personPhone" jdbcType="VARCHAR" />
+        <result column="BUILD" property="build" jdbcType="VARCHAR" />
+        <result column="UNIT" property="unit" jdbcType="VARCHAR" />
+        <result column="HOUSE" property="house" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <!--发卡管理-->
+    <insert id="insertAddCard" parameterClass="java.util.HashMap">
+        INSERT INTO mj_add_card(residentail,add_num)
+        VALUES (#residentail#,#addNum#)
+    </insert>
+    <select id="selectAddCard" resultMap="AddCardResult" parameterClass="AddCard">
+        select s.id,(select n.name from mj_residential m,mj_community n where m.community = n.id and m.id = s.id) community,s.name residentail,
+        (select count(1) from r_person_card a,r_house_person b,(SELECT * FROM mj_build_unit WHERE TYPE =3) c,mj_house_unit d,(SELECT * FROM mj_build_unit WHERE TYPE =2) e where c.parent_id=e.id and c.id = d.unit_id and d.id=b.house_id and b.person_id = a.person_id and e.residentail_id= RESIDENTAIL) send,
+        ifnull(sum(add_num),0) rest from mj_add_card j RIGHT JOIN mj_residential s ON j.RESIDENTAIL=s.id
+        <dynamic prepend="WHERE">
+            <isNotEmpty property="residentail" prepend="AND">
+                s.name LIKE '%$residentail$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                s.create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                s.create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                s.create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                s.create_user IN (SELECT mid FROM manaager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+
+        group by s.id
+    </select>
+    <select id="addCardCount" parameterClass="AddCard" resultClass="int">
+        select count(n.id) countNum from (select s.id from mj_add_card j RIGHT JOIN mj_residential s ON j.RESIDENTAIL=s.id
+        <dynamic prepend="WHERE">
+            <isNotEmpty property="residentail" prepend="AND">
+                s.name LIKE '%$residentail$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                s.create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                s.create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                s.create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                s.create_user IN (SELECT mid FROM manaager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+        group by s.id) n
+    </select>
+    <!--卡管理-->
+    <insert id="insert" parameterClass="Card">
+        INSERT INTO mj_card(card_id,card_type,invailid_date,card_status,remark,residentail,create_user)
+        VALUES (#cardId#,#cardType#,#invalidDate#,#cardStatus#,#remark#,#residentail#,#createUser#)
+    </insert>
+    <select id="queryOne" parameterClass="java.lang.String" resultMap="CardResult">
+        select id,card_id,card_type,date_format(invailid_date,'%Y-%m-%d') invailid_date,card_status,remark,residentail from mj_card where id = #id#
+    </select>
+    <select id="listByMap" resultMap="CardResult" parameterClass="java.util.HashMap">
+        SELECT m.id,m.card_id,m.card_type,date_format(m.invailid_date,'%Y-%m-%d') invailid_date,m.card_status,m.remark,m.residentail,p.name person
+        FROM mj_card m
+        left join r_person_card r on m.card_id = r.card_id
+        left join mj_person p on r.person_id = p.id
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="id">
+                m.id = #id#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="residentailName">
+                m.residentail in(select id from mj_residential where name like '%$residentailName$%')
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="cardId">
+                m.card_id LIKE '%$cardId$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="cardStatus">
+                m.card_status = #cardStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="band">
+                m.card_id NOT IN (SELECT card_id FROM r_person_card)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                m.create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                m.create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                m.create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                m.create_user IN (SELECT mid FROM manager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <select id="countByMap" parameterClass="java.util.HashMap" resultClass="int">
+        SELECT count(*) FROM mj_card m
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="id">
+                m.id = #id#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="residentailName">
+                m.residentail in(select id from mj_residential where name like '%$residentailName$%')
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="cardId">
+                m.card_id LIKE '%$cardId$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="cardStatus">
+                m.card_status = #cardStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="band">
+                m.card_id NOT IN (SELECT card_id FROM r_person_card)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                m.create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                m.create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                m.create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                m.create_user IN (SELECT mid FROM manager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <update id="update" parameterClass="Card">
+        UPDATE mj_card
+        <dynamic prepend="SET">
+            <isNotEmpty prepend="," property="cardType">
+                card_type = #cardType#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="cardStatus">
+                card_status = #cardStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="invalidDate">
+                invailid_date = #invalidDate#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="remark">
+                remark = #remark#
+            </isNotEmpty>
+        </dynamic>
+        WHERE id = #id#
+    </update>
+    <delete id="delete" parameterClass="java.lang.String">
+        DELETE FROM mj_card WHERE id = #id#
+    </delete>
+    <!--卡绑定管理-->
+    <select id="selectBandCard" resultMap="BandCardResult" parameterClass="java.util.HashMap">
+        select a.id,a.CARD_ID,a.card_type,date_format(a.invailid_date,'%Y-%m-%d')invailid_date,a.card_status,
+        ifnull((select name from mj_person where id = b.person_id),'未绑定') person from mj_card a LEFT JOIN (SELECT * FROM r_person_card WHERE flag=0) b ON a.CARD_ID=b.CARD_ID
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="cardId">
+                a.card_id = #cardId#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="cardStatus">
+                a.card_status = #cardStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="personName">
+                b.person_id in(SELECT m.id from mj_person m where m.name like '%$personName$%')
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <select id="selectBandCardNew" resultMap="BandCardResultNew" parameterClass="java.util.HashMap">
+        SELECT m.* FROM (SELECT (SELECT u4.name FROM mj_house_unit u1,(SELECT * FROM mj_build_unit WHERE type=3) u2,(SELECT * FROM mj_build_unit WHERE type=2) u3,(SELECT * FROM mj_build_unit WHERE type=1) u4 WHERE u1.unit_id=u2.id AND u2.parent_id=u3.id AND u4.id=u3.parent_id and u1.id = aa.house_id) build
+        ,((SELECT u3.name FROM mj_house_unit u1,(SELECT * FROM mj_build_unit WHERE type=3) u2,(SELECT * FROM mj_build_unit WHERE type=2) u3 WHERE u1.unit_id=u2.id AND u2.parent_id=u3.id and u1.id = aa.house_id)) unit
+        ,(SELECT name FROM mj_house_unit WHERE id = aa.house_id) house,aa.house_id
+        ,bb.id person_id,bb.card_no person_card,bb.phone person_phone,bb.name person_name,ifnull(bb.CARD_ID,'未绑定')card_id,ifnull((SELECT card_status FROM mj_card WHERE card_id = bb.CARD_ID),0)card_status,
+        if(bb.CARD_ID IS NULL,'未绑定','已绑定') is_band,
+        (SELECT (SELECT (SELECT name FROM mj_residential WHERE id = tt1.residentail_id) FROM mj_build_unit tt2,(SELECT * FROM mj_build_unit WHERE type=2) tt1 WHERE tt2.parent_id=tt1.id AND tt2.id=t.unit_id) FROM mj_house_unit t WHERE t.id = aa.house_id) residentail,
+        (SELECT (SELECT tt1.residentail_id FROM mj_build_unit tt2,(SELECT * FROM mj_build_unit WHERE type=2) tt1 WHERE tt2.parent_id=tt1.id AND tt2.id=t.unit_id) FROM mj_house_unit t WHERE t.id = aa.house_id) residentail_id
+        FROM (SELECT * FROM r_house_person a) aa RIGHT JOIN
+        (SELECT b.CARD_ID,a.* FROM mj_person a LEFT JOIN r_person_card b ON a.id=b.person_id) bb ON aa.person_id=bb.id) m WHERE m.residentail_id IS NOT NULL
+        <isNotEmpty prepend="AND" property="cardId">
+            m.card_id LIKE '%$cardId$%'
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="residentailId">
+            m.residentail_id = #residentailId#
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="personName">
+            m.person_name LIKE '%$personName$%'
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="band">
+            m.is_band = #band#
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="province">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM mj_residential r1,mj_community r2,
+            (SELECT id,residentail_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE r1.community = r2.id AND r1.id=r3.residentail_id
+            AND r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r2.province=#province#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="city">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM mj_residential r1,mj_community r2,
+            (SELECT id,residentail_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE r1.community = r2.id AND r1.id=r3.residentail_id
+            AND r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r2.city=#city#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="county">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM mj_residential r1,mj_community r2,
+            (SELECT id,residentail_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE r1.community = r2.id AND r1.id=r3.residentail_id
+            AND r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r2.county=#county#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="community">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM mj_residential r1,mj_community r2,
+            (SELECT id,residentail_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE r1.community = r2.id AND r1.id=r3.residentail_id
+            AND r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r2.id=#community#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="residentail">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM
+            (SELECT id,residentail_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r3.residentail_id=#residentail#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="build">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM
+            (SELECT id,residentail_id,parent_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE  r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r3.parent_id=#build#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="unit">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE   r4.id=r5.unit_id AND r5.id=r6.house_id AND r4.parent_id=#unit#
+            )
+        </isNotEmpty>
+    </select>
+    <select id="bandCardCount" parameterClass="java.util.HashMap" resultClass="int">
+        select count(1) from mj_card a LEFT JOIN (SELECT * FROM r_person_card WHERE flag=0) b ON a.CARD_ID=b.CARD_ID
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="cardId">
+                a.card_id = #cardId#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="cardStatus">
+                a.card_status = #cardStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="personName">
+                b.person_id in(SELECT m.id from mj_person m where m.name like '%$personName$%')
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <select id="bandCardCountNew" parameterClass="java.util.HashMap" resultClass="int">
+        SELECT count(1) FROM (SELECT aa.house_id,bb.id person_id,bb.name person_name,bb.CARD_ID,ifnull((SELECT card_status FROM mj_card WHERE card_id = bb.CARD_ID),0)card_status,
+        if(bb.CARD_ID IS NULL,'未绑定','已绑定') is_band,
+        (SELECT (SELECT (SELECT name FROM mj_residential WHERE id = tt1.residentail_id) FROM mj_build_unit tt2,(SELECT * FROM mj_build_unit WHERE type=2) tt1 WHERE tt2.parent_id=tt1.id AND tt2.id=t.unit_id) FROM mj_house_unit t WHERE t.id = aa.house_id) residentail,
+        (SELECT (SELECT tt1.residentail_id FROM mj_build_unit tt2,(SELECT * FROM mj_build_unit WHERE type=2) tt1 WHERE tt2.parent_id=tt1.id AND tt2.id=t.unit_id) FROM mj_house_unit t WHERE t.id = aa.house_id) residentail_id
+        FROM (SELECT * FROM r_house_person a) aa RIGHT JOIN
+        (SELECT b.CARD_ID,a.* FROM mj_person a LEFT JOIN r_person_card b ON a.id=b.person_id) bb ON aa.person_id=bb.id) m WHERE m.residentail_id IS NOT NULL
+        <isNotEmpty prepend="AND" property="cardId">
+            m.card_id LIKE '%$cardId$%'
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="residentailId">
+            m.residentail_id = #residentailId#
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="personName">
+            m.person_name LIKE '%$personName$%'
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="band">
+            m.is_band = #band#
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="province">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM mj_residential r1,mj_community r2,
+            (SELECT id,residentail_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE r1.community = r2.id AND r1.id=r3.residentail_id
+            AND r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r2.province=#province#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="city">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM mj_residential r1,mj_community r2,
+            (SELECT id,residentail_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE r1.community = r2.id AND r1.id=r3.residentail_id
+            AND r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r2.city=#city#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="county">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM mj_residential r1,mj_community r2,
+            (SELECT id,residentail_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE r1.community = r2.id AND r1.id=r3.residentail_id
+            AND r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r2.county=#county#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="community">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM mj_residential r1,mj_community r2,
+            (SELECT id,residentail_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE r1.community = r2.id AND r1.id=r3.residentail_id
+            AND r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r2.id=#community#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="residentail">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM
+            (SELECT id,residentail_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r3.residentail_id=#residentail#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="build">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM
+            (SELECT id,residentail_id,parent_id FROM mj_build_unit WHERE type = 2) r3,
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE  r3.id=r4.parent_id AND r4.id=r5.unit_id AND r5.id=r6.house_id AND r3.parent_id=#build#
+            )
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="unit">
+            (m.person_id,m.house_id) IN (
+            SELECT r6.person_id,r6.house_id FROM
+            (SELECT id,parent_id FROM mj_build_unit WHERE type = 3) r4,
+            (SELECT id,unit_id FROM mj_house_unit) r5,
+            (SELECT person_id,house_id FROM r_house_person) r6
+            WHERE   r4.id=r5.unit_id AND r5.id=r6.house_id AND r4.parent_id=#unit#
+            )
+        </isNotEmpty>
+    </select>
+    <update id="toLoseCard" parameterClass="java.lang.String">
+        UPDATE mj_card set card_status=2 WHERE card_id = #id#
+    </update>
+    <insert id="addBandInfo" parameterClass="java.util.Map">
+        insert into r_person_card(person_id,card_id,flag) VALUES (#personId#,#cardId#,0);
+    </insert>
+    <delete id="toNoBand" parameterClass="java.lang.String">
+        DELETE FROM r_person_card WHERE card_id=#id#
+    </delete>
+    <select id="getBandCount" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+        SELECT count(1) FROM r_person_card WHERE card_id=#id#
+    </select>
+    <insert id="addBindCard" parameterClass="java.util.Map">
+        insert into mj_card(card_id,card_type,invailid_date,card_status,create_user) VALUES (#id#,#cardType#,#invailidDate#,#cardStatus#,#createUser#);
+    </insert>
+    <select id="getCardCount" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+        SELECT count(1) FROM mj_card WHERE card_id=#id#
+    </select>
+    <select id="getDeviceId" resultClass="java.lang.String" parameterClass="java.lang.String">
+        SELECT device_id FROM mj_device WHERE unit=#id#
+    </select>
+</sqlMap>

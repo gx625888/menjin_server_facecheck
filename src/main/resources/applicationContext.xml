@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans  
+            http://www.springframework.org/schema/beans/spring-beans-3.1.xsd  
+            http://www.springframework.org/schema/context  
+            http://www.springframework.org/schema/context/spring-context-3.1.xsd  
+            http://www.springframework.org/schema/tx  
+            http://www.springframework.org/schema/tx/spring-tx-3.1.xsd  
+            http://www.springframework.org/schema/util  
+            http://www.springframework.org/schema/util/spring-util-3.1.xsd  
+            http://www.springframework.org/schema/mvc
+            http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+            http://www.springframework.org/schema/aop
+            http://www.springframework.org/schema/aop/spring-aop-3.1.xsd">
+
+	<!-- 打开注解 -->
+	<context:annotation-config />
+
+	<!-- 打开自动扫描 -->
+	<context:component-scan base-package="com.threey.guard" />
+
+	<bean id="propertyConfig"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.properties</value>
+				<value>classpath:memcache.properties</value>
+				<value>classpath:redis.properties</value>
+				<value>classpath:system.properties</value>
+			</list>
+		</property>
+	</bean>
+    
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="${jdbc.driverClassName}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!--最大空闲时间,180秒内未使用则连接被丢弃。若为0则永不丢弃。Default:0-->
+		<property name="maxIdleTime" value="180" />
+		<property name="maxStatements" value="100" />
+		<!--定义在从数据库获取新连接失败后重复尝试的次数。Default: 30 --> 
+		<property name="acquireRetryAttempts" value="40" />
+		<property name="breakAfterAcquireFailure" value="false" />
+		<property name="minPoolSize" value="1" />
+		<property name="maxPoolSize" value="5" />
+		<property name="initialPoolSize" value="1" />
+		<property name="acquireIncrement" value="1" />
+	</bean>
+	
+
+ 	
+	<!-- 配置事务管理器 -->
+	<bean id="transactionManager" 
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+ 		
+
+	<!-- 事务的传播特性 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*" propagation="REQUIRED" rollback-for="Exception"/>
+		</tx:attributes>
+	</tx:advice>
+	
+
+	<!-- 哪些类哪些方法使用事务 -->
+	<aop:config> 
+		<aop:pointcut id="allServiceMethod" expression="execution(* com.threey.guard.*.service.*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="allServiceMethod" /> 
+	</aop:config>
+	
+
+	<!-- aop缓存设置 -->
+	<bean id="cacheableAop" class="com.threey.guard.base.aop.CacheableAop"/>
+ 	<aop:config>
+		<aop:aspect ref="cacheableAop">
+			<aop:pointcut id="target" expression="execution(* com.threey.guard.*.dao.*.*Cache(..))" />
+			<aop:around method="process" pointcut-ref="target"/>
+		</aop:aspect>
+	</aop:config>
+ 	
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation">
+			<value>classpath:sql-map-config.xml</value>
+		</property>
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+
+
+	<bean id="sqlMapClientTemplate" class="org.springframework.orm.ibatis.SqlMapClientTemplate">
+		<property name="dataSource" ref="dataSource" />
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
+
+	
+	<!-- 将quartz启动与关闭，schedule实例交给spring -->
+    <bean id="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean"/>
+
+	<bean id="faceApiClient" class="com.baidu.aip.face.AipFace">
+		<constructor-arg value="${baidu.appid}"/>
+		<constructor-arg value="${baidu.ak}"/>
+		<constructor-arg value="${baidu.aks}"/>
+	</bean>
+</beans>

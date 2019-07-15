@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN"
+        "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+	<settings enhancementEnabled="true" maxTransactions="20"
+		maxRequests="32" maxSessions="10" useStatementNamespaces="true" />
+
+	<!-- Identify all SQL Map XML files to be loaded by this SQL map. Relative 
+		to classpath -->
+	<!-- add user define SQL maps -->
+
+	<sqlMap resource="sqlmaps/base/CommonSQL.xml" />
+	<sqlMap resource="sqlmaps/base/LogAudit.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerUserSQL.xml" />
+	<sqlMap resource="sqlmaps/base/PrivilegeSQL.xml" />
+	<sqlMap resource="sqlmaps/base/MenuSQL.xml" />
+	<sqlMap resource="sqlmaps/base/RoleSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerCommunitySQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerAreaSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerResidentailSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerPersonSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerCardSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerDeviceSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerResourceSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerDataServerSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerCompanySQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerPersonInfoSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/IndexChart.xml" />
+
+
+	<sqlMap resource="sqlmaps/manage/ManagerBuildUnitSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManageBuildUnit.xml" />
+	<sqlMap resource="sqlmaps/manage/ManagerClientApiSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/ManageHouse.xml" />
+	<sqlMap resource="sqlmaps/manage/ManageWxBandSQL.xml" />
+	<sqlMap resource="sqlmaps/manage/CommonCardSQL.xml" />
+
+	<sqlMap resource="sqlmaps/clientMsg/ClientMsg.xml" />
+
+	<!--微信小程序-->
+	<sqlMap resource="sqlmaps/manage/WxAppDao.xml"/>
+
+</sqlMapConfig>

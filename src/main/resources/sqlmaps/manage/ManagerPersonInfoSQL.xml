@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerPersonInfoSQL">
+    <typeAlias alias="ManagerInfo" type="com.threey.guard.manage.domain.ManagerInfo"/>
+    <resultMap id="ManagerInfoResult" class="com.threey.guard.manage.domain.ManagerInfo">
+        <result property="id" column="MID" jdbcType="VARCHAR"/>
+        <result property="loginName" column="LOGIN_NAME" jdbcType="VARCHAR"/>
+        <result property="managerName" column="MANAGER_NAME" jdbcType="VARCHAR"/>
+        <result property="company" column="COMPANY_NAME" jdbcType="VARCHAR"/>
+        <result property="phone" column="PHONE" jdbcType="VARCHAR"/>
+        <result property="cardType" column="CARD_TYPE" jdbcType="INTEGER"/>
+        <result property="cardNo" column="CARD_NO" jdbcType="VARCHAR"/>
+        <result property="residentail" column="RESIDENTAIL" jdbcType="VARCHAR"/>
+    </resultMap>
+    <!--社区管理-->
+    <select id="queryOne" parameterClass="java.lang.String" resultMap="ManagerInfoResult">
+      select m.mid,m.USER_ID login_name,m.name manager_name,m.Enterprise_Logo company_name,
+      m.PHONE,ifnull(m.CITY_ID,1) card_type,m.AREA_ID card_no,(select name from mj_residential where id = m.ADDRESS) residentail
+       from manager_user m where m.mid = #id#
+    </select>
+    <update id="update" parameterClass="ManagerInfo">
+        UPDATE manager_user
+        <dynamic prepend="SET">
+            <isNotEmpty prepend="," property="managerName">
+                name = #managerName#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="cardType">
+                CITY_ID = #cardType#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="cardNo">
+                AREA_ID = #cardNo#
+            </isNotEmpty>
+        </dynamic>
+        WHERE mid = #id#
+    </update>
+    <update id="updatePW" parameterClass="java.util.HashMap">
+        UPDATE manager_user
+        set password = #pwd#
+        WHERE mid = #id#
+    </update>
+    <select id="queryRoleName" parameterClass="java.lang.String" resultClass="java.lang.String">
+        select name from role where id in(select role_id from user_role where user_id =#id#)
+    </select>
+</sqlMap>

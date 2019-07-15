@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerResourceSQL">
+    <typeAlias alias="Resource" type="com.threey.guard.manage.domain.Resource"/>
+    <typeAlias alias="Privilege" type="com.threey.guard.base.domain.Privilege"/>
+    <resultMap id="ResourceResult" class="com.threey.guard.manage.domain.Resource">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="RESOURCE_NAME" property="resourceName" jdbcType="VARCHAR" />
+        <result column="FILE_PATH" property="filePath" jdbcType="VARCHAR" />
+        <result column="FILE_EXTENSION" property="fileExtension" jdbcType="VARCHAR" />
+        <result column="CREATE_USER" property="createUser" jdbcType="VARCHAR" />
+        <result column="RESOURCE_TYPE" property="resourceType" jdbcType="INTEGER" />
+        <result column="RESOURCE_STATUS" property="resourceStatus" jdbcType="INTEGER" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+        <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <insert id="insert" parameterClass="Resource">
+        INSERT INTO mj_resource(resource_name,file_path,file_extension,create_user,resource_type,resource_status,remark) 
+        VALUES (#resourceName#,#filePath#,#fileExtension#,#createUser#,#resourceType#,#resourceStatus#,#remark#)
+    </insert>
+    <select id="queryOne" parameterClass="java.lang.String" resultMap="ResourceResult">
+        select * from mj_resource where id = #id#
+    </select>
+    <select id="listByMap" resultMap="ResourceResult" parameterClass="java.util.HashMap">
+        SELECT * FROM mj_resource
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="id">
+                id = #id#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="resourceName">
+                resource_name LIKE '%$resourceName$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="resourceType">
+                resource_type = #resourceType#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="resourceStatus">
+                resource_status = #resourceStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                create_user IN (SELECT mid FROM manaager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+        ORDER BY id
+    </select>
+    <select id="countByMap" resultClass="int" parameterClass="java.util.HashMap">
+        SELECT count(*) FROM mj_resource
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="id">
+                id = #id#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="resourceName">
+                resource_name LIKE '%$resourceName$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="resourceType">
+                resource_type = #resourceType#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="resourceStatus">
+                resource_status = #resourceStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                create_user IN (SELECT mid FROM manaager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <update id="update" parameterClass="Resource">
+        UPDATE mj_resource
+        <dynamic prepend="SET">
+            <isNotEmpty prepend="," property="resourceName">
+                resource_name = #resourceName#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="filePath">
+                file_path = #filePath#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="fileExtension">
+                file_extension = #fileExtension#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="resourceType">
+                resource_type = #resourceType#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="resourceStatus">
+                resource_status = #resourceStatus#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="remark">
+                remark = #remark#
+            </isNotEmpty>
+        </dynamic>
+        WHERE id = #id#
+    </update>
+    <delete id="delete" parameterClass="java.lang.String">
+        DELETE FROM mj_resource WHERE id = #id#
+    </delete>
+    <select id="listUnitByResidentail" parameterClass="java.util.Map" resultClass="Privilege">
+        SELECT a.id privilegeCode,a.name privilegeName,a.parentId modularId,b.resource_id hasPrivilege FROM (SELECT id,name,"" parentId FROM mj_residential
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                id IN (SELECT id FROM mj_residential WHERE create_user IN (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#))
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                id IN (SELECT manager_residentail FROM manager_user WHERE manager_province = #createUserProvince# GROUP BY manager_residentail)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                id IN (SELECT manager_residentail FROM manager_user WHERE manager_city = #createUserCity# GROUP BY manager_residentail)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                id = #createUserResidentail#
+            </isNotEmpty>
+        </dynamic>
+        UNION
+        SELECT id,name,(CASE WHEN parent_id=0 THEN residentail_id ELSE parent_id END) parentId FROM mj_build_unit where  type &lt; 3
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                residentail_id in (SELECT id FROM mj_residential WHERE create_user IN (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#))
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                residentail_id IN (SELECT manager_residentail FROM manager_user WHERE manager_province = #createUserProvince# GROUP BY manager_residentail)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                residentail_id IN (SELECT manager_residentail FROM manager_user WHERE manager_city = #createUserCity# GROUP BY manager_residentail)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                residentail_id = #createUserResidentail#
+            </isNotEmpty>
+        ) a LEFT JOIN (SELECT * FROM r_unit_resource WHERE resource_id=#resourceId#) b ON a.id=b.unit_id
+    </select>
+    <insert id ="insertUnitByResidentail" parameterClass="java.util.List" >
+        <![CDATA[
+         insert into r_unit_resource
+             (unit_id, resource_id)
+            values
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].unitId:VARCHAR}#, #{list[].resourceId:VARCHAR}#
+            )
+            ]]>
+        </iterate>
+    </insert>
+
+    <delete id="deleteUnitByResidentail" parameterClass="java.lang.String">
+        DELETE FROM r_unit_resource WHERE resource_id = #resourceId#
+    </delete>
+
+    <update id="updateStatus" parameterClass="java.lang.String">
+        UPDATE mj_resource SET resource_status=1 WHERE id = #id#
+    </update>
+</sqlMap>

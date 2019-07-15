@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManageWxBandSQL">
+    <typeAlias alias="SelectObj" type="com.threey.guard.wechat.domain.SelectObj"/>
+    <typeAlias alias="WxBand" type="com.threey.guard.wechat.domain.WxBand"/>
+    <typeAlias alias="WxBandVO" type="com.threey.guard.wechat.domain.WxBandVO"/>
+    <typeAlias alias="WxPropertis" type="com.threey.guard.wechat.domain.WeChatPropertis"/>
+    <resultMap id="SelectObjResult" class="com.threey.guard.wechat.domain.SelectObj">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+    </resultMap>
+    <resultMap id="WxBandResult" class="com.threey.guard.wechat.domain.WxBand">
+        <result column="WECHAT_ID" property="wxId" jdbcType="VARCHAR" />
+        <result column="PERSON_ID" property="personId" jdbcType="VARCHAR" />
+        <result column="PHONE" property="phone" jdbcType="VARCHAR" />
+        <result column="HOUSE_ID" property="houseId" jdbcType="VARCHAR" />
+    </resultMap>
+    <!--微信绑定-->
+    <select id="queryResidentail" resultMap="SelectObjResult">
+        SELECT id,name FROM mj_residential
+    </select>
+    <select id="queryBuild" resultMap="SelectObjResult" parameterClass="java.lang.String">
+        SELECT id,name FROM mj_build_unit WHERE type = 1 AND residentail_id=#id#
+    </select>
+    <select id="queryUnit" resultMap="SelectObjResult" parameterClass="java.lang.String">
+        SELECT id,name FROM mj_build_unit WHERE type = 2 AND parent_id=#id#
+    </select>
+    <select id="queryFloor" resultMap="SelectObjResult" parameterClass="java.lang.String">
+        SELECT id,name FROM mj_build_unit WHERE type = 3 AND parent_id=#id#
+    </select>
+    <select id="queryHouse" resultMap="SelectObjResult" parameterClass="java.lang.String">
+        SELECT id,name FROM mj_house_unit WHERE unit_id=#id#
+    </select>
+    <insert id="wxBandInsert" parameterClass="WxBand">
+        INSERT INTO mj_wechat_band(wechat_id,person_id,phone,house_id,company) VALUES (#wxId#,#personId#,#phone#,#houseId#,#company#)
+    </insert>
+    <select id="queryPersonId" parameterClass="java.util.Map" resultClass="java.lang.String">
+        SELECT a.person_id FROM r_house_person a,mj_person b WHERE  b.id = a.person_id AND b.phone = #phone# AND a.house_id = #house#
+    </select>
+    <select id="getBindHouses" parameterClass="java.lang.String" resultClass="WxBandVO">
+       select wb.wechat_id wxId,wb.person_id personId,wb.phone,wb.house_id houseId
+          ,hu.name houseName ,level.name levelName ,unit.name unitName ,build.name buildName ,r.name residentialName
+          ,(select device_id from mj_device where mj_device.unit = unit.id) deviceId
+       from mj_wechat_band wb ,mj_house_unit hu ,mj_build_unit level
+          ,mj_build_unit unit,mj_build_unit build,mj_residential r
+      where wb.house_id = hu.id and hu.unit_id = level.id and level.parent_id = unit.id
+        and unit.parent_id = build.id and unit.residentail_id = r.id
+        and wechat_id = #wxOpenId#
+    </select>
+
+    <select id="getBindHousesByPhone" parameterClass="java.util.HashMap" resultClass="WxBandVO">
+       select wb.wechat_id wxId,mp.id personId,wb.phone,rhp.house_id houseId ,hu.status houseOpenType
+        ,hu.name houseName ,level.name levelName ,unit.name unitName ,build.name buildName ,r.name residentialName
+        ,(select device_id from mj_device where mj_device.unit = unit.id) deviceId
+      from mj_person mp,r_house_person rhp,mj_wechat_band wb ,mj_house_unit hu ,mj_build_unit level
+          ,mj_build_unit unit,mj_build_unit build,mj_residential r
+      where  mp.id = rhp.person_id and mp.phone = wb.phone and rhp.house_id = hu.id and hu.unit_id = level.id and level.parent_id = unit.id
+        and unit.parent_id = build.id and unit.residentail_id = r.id
+        and mp.phone =  #phone# and wb.company =  #company#
+          and r.create_user in (select mid  from manager_user where manager_company = #company#)
+    </select>
+    <delete id="unbind" parameterClass="java.util.HashMap">
+        delete from mj_wechat_band where house_id = #houseId# and wechat_id = #wxOpenId#
+    </delete>
+
+    <select id="checkPhoneExists" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+        select count(1) from mj_person where phone = #phone#
+    </select>
+    <select id="getBindPhone" parameterClass="java.util.HashMap" resultClass="java.lang.String">
+        select phone from mj_wechat_band where wechat_id = #openId# and company = #company#
+    </select>
+    <delete id="clearBind" parameterClass="java.util.HashMap">
+        delete from mj_wechat_band where wechat_id = #openId# and company = #company#
+    </delete>
+
+    <select id="getWeChatProperties" parameterClass="java.lang.String" resultClass="WxPropertis">
+        select id,company_id company,app_id appId,app_sec appSecret ,token ,update_time updateTime,templet_id templetId
+        from mj_company_wechat
+        where company_id = #company#
+    </select>
+
+    <select id="getWeChatPropertiesAll"  resultClass="WxPropertis">
+        select id,company_id company,app_id appId,app_sec appSecret ,token ,update_time updateTime from mj_company_wechat
+    </select>
+    <update id="updateWeChatToken" parameterClass="WxPropertis">
+        update mj_company_wechat set token = #token# ,update_time = #updateTime# where id = #id#
+    </update>
+
+    <select id="getWxBindByHouseDevice" parameterClass="java.util.HashMap" resultClass="WxBand">
+        select mwb.wechat_id wxId ,mwb.company from (
+        select * from mj_house_unit where name =#house# and unit_id in (
+          select id from mj_build_unit where parent_id in (
+            select mb.id from mj_device md ,mj_build_unit mb where md.unit=mb.id and md.device_id = #device#)
+        )) temp , r_house_person rhp,mj_person mp,mj_wechat_band mwb where temp.id=rhp.house_id and mp.id = rhp.person_id
+        and mwb.phone = mp.phone
+    </select>
+
+    <select id="getResNameByDevice" parameterClass="java.lang.String" resultClass="java.lang.String">
+       select CONCAT(mr.name,' ',mbb.name,' ',mb.name) name  from mj_device md,mj_build_unit mb,mj_residential mr,mj_build_unit mbb
+        where md.unit=mb.id and mb.residentail_id = mr.id and mbb.id = mb.parent_id
+        and device_id = #device#
+    </select>
+
+</sqlMap>

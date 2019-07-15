@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerCompanySQL">
+    <typeAlias alias="Company" type="com.threey.guard.manage.domain.CompanyInfo"/>
+    <resultMap id="CompanyResult" class="com.threey.guard.manage.domain.CompanyInfo">
+        <result property="id" column="ID" jdbcType="VARCHAR"/>
+        <result property="companyName" column="COMPANY_NAME" jdbcType="VARCHAR"/>
+        <result property="platformName" column="PLATFORM_NAME" jdbcType="VARCHAR"/>
+        <result property="companyLogo" column="COMPANY_LOGO" jdbcType="VARCHAR"/>
+        <result property="person" column="PERSON" jdbcType="VARCHAR"/>
+        <result property="phone" column="PHONE" jdbcType="VARCHAR"/>
+        <result property="province" column="PROVINCE" jdbcType="VARCHAR"/>
+        <result property="city" column="CITY" jdbcType="VARCHAR"/>
+        <result property="adress" column="ADRESS" jdbcType="VARCHAR"/>
+        <result property="msgDot" column="MSG_DOT" jdbcType="VARCHAR"/>
+    </resultMap>
+    <!--社区管理-->
+    <insert id="insert" parameterClass="Company">
+        INSERT INTO mj_mange_compay(company_name,platform_name,company_logo,person,phone,province,city,adress,msg_dot)
+        VALUES (#companyName#,#platformName#,#companyLogo#,#person#,#phone#,#province#,#city#,#adress#,#msgDot#)
+    </insert>
+    <select id="queryOne" parameterClass="java.lang.String" resultMap="CompanyResult">
+        select id,company_name,platform_name,company_logo,person,phone,province,city,adress,msg_dot from mj_mange_compay where id = #id#
+    </select>
+    <update id="update" parameterClass="Company">
+        UPDATE mj_mange_compay
+        <dynamic prepend="SET">
+            <isNotEmpty prepend="," property="companyName">
+                company_name = #companyName#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="platformName">
+                platform_name = #platformName#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="companyLogo">
+                company_logo = #companyLogo#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="person">
+                person = #person#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="phone">
+                phone = #phone#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="province">
+                province = #province#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="city">
+                city = #city#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="adress">
+                adress = #adress#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="msgDot">
+                msg_dot = #msgDot#
+            </isNotEmpty>
+        </dynamic>
+        WHERE id = #id#
+    </update>
+    <select id="listByMap" resultMap="CompanyResult" parameterClass="java.util.HashMap">
+        select id,company_name,platform_name,company_logo,person,phone,province,city,adress,msg_dot from mj_mange_compay
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="name">
+                company_name like '%$name$%'
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <select id="countByMap" resultClass="int" parameterClass="java.util.HashMap">
+        select count(1) from mj_mange_compay
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="name">
+                company_name like '%$name$%'
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <delete id="delete" parameterClass="java.lang.String">
+        DELETE FROM mj_mange_compay WHERE id = #id#
+    </delete>
+
+
+</sqlMap>

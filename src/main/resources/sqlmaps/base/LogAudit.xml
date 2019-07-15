@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+        "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="LogAudit">
+    <typeAlias alias="LogAudit" type="com.threey.guard.base.domain.LogAudit"/>
+    <select id="getList" parameterClass="java.util.HashMap" resultClass="LogAudit">
+        SELECT id,user_id userId,opt_type optType,opt_type_int optTypeInt,user_name userName,info,ip_info ipInfo,DATE_FORMAT(OPT_TIME,   '%Y-%m-%d %H:%i:%S') optTime
+        FROM log_audit
+        <dynamic prepend="WHERE">
+
+            <isNotEmpty prepend="AND" property="type">
+                opt_type_int = #type#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="sDate">
+                OPT_TIME &gt; #sDate#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="eDate">
+                opt_time &lt; #eDate#
+            </isNotEmpty>
+        </dynamic>
+
+        ORDER BY OPT_TIME desc
+    </select>
+
+    <select id="getCount" resultClass="Integer" parameterClass="java.util.HashMap">
+        SELECT
+        count(*)
+        FROM
+        log_audit
+
+        <dynamic prepend="WHERE">
+
+            <isNotEmpty prepend="AND" property="type">
+                opt_type_int = #type#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="sDate">
+                OPT_TIME &gt; #sDate#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="eDate">
+                opt_time &lt; #eDate#
+            </isNotEmpty>
+        </dynamic>
+    </select>
+
+
+    <!-- 新增 -->
+    <insert id="insert" parameterClass="LogAudit">
+      insert into log_audit (user_id,opt_type,opt_type_int,user_name,info,ip_info,mid)
+      values (#userId#,#optType#,#optTypeInt#,#userName#,#info#,#ipInfo#,#mid#);
+	</insert>
+
+
+</sqlMap>

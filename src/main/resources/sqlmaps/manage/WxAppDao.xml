@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="WxAppDao">
+    <typeAlias alias="WxAppBindingPhone" type="com.threey.guard.mapp.domain.WxAppBindingPhone"/>
+    <typeAlias alias="WxAppBindingVO" type="com.threey.guard.mapp.domain.WxAppBindingVO"/>
+    <!--
+    <resultMap id="SelectObjResult" class="com.threey.guard.wechat.domain.SelectObj">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+    </resultMap>
+    <resultMap id="WxBandResult" class="com.threey.guard.wechat.domain.WxBand">
+        <result column="WECHAT_ID" property="wxId" jdbcType="VARCHAR" />
+        <result column="PERSON_ID" property="personId" jdbcType="VARCHAR" />
+        <result column="PHONE" property="phone" jdbcType="VARCHAR" />
+        <result column="HOUSE_ID" property="houseId" jdbcType="VARCHAR" />
+    </resultMap>
+    -->
+    <select id="getBindingPhone" parameterClass="java.util.HashMap" resultClass="java.lang.String">
+        select phone from wx_app_binding_phone where app_id = #appId# and open_id = #openId#
+    </select>
+
+    <delete id="cleanBind" parameterClass="java.util.HashMap">
+        delete from wx_app_binding_phone where app_id = #appid# and open_id = #openid#
+    </delete>
+    <insert id="bindPhone" parameterClass="java.util.HashMap">
+        INSERT INTO wx_app_binding_phone(app_id, open_id, phone)
+        VALUES (#appid#, #openid#, #phone#)
+    </insert>
+
+    <select id="getBindingHouses" parameterClass="java.lang.String" resultClass="WxAppBindingVO">
+        select
+          p.id personId,
+          p.name personName,
+          p.phone,
+          ph.house_id houseId,
+          hu.name as houseName,
+          hu.unit_id as levelId,
+          blevel.name as levelName,
+          unit.id as unitId,
+          unit.name as unitName,
+          d.device_id deviceId,
+          d.device_tel deviceTel,
+          d.device_phone devicePhone,
+          build.id as buildId,
+          build.name as buildName,
+    (select
+            name
+        from
+            mj_residential
+        where
+            id = build.residentail_id) as residentName
+from
+    mj_person p,
+    r_house_person ph,
+    mj_house_unit hu,
+    mj_build_unit blevel,
+    mj_build_unit unit,
+    mj_device d,
+    mj_build_unit build
+where
+    p.id = ph.person_id
+        and hu.unit_id = blevel.id
+        and blevel.parent_id = unit.id
+        and unit.parent_id = build.id
+        and hu.id = ph.house_id
+        and d.unit = unit.id
+        and p.phone = #phone#
+    </select>
+
+</sqlMap>

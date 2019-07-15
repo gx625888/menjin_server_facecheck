@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerAreaSQL">
+    <typeAlias alias="Area" type="com.threey.guard.manage.domain.Area"/>
+    <resultMap id="AreaResult" class="com.threey.guard.manage.domain.Area">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+        <result column="PARENT_ID" property="parentId" jdbcType="VARCHAR" />
+        <result column="TYPE" property="type" jdbcType="INTEGER" />
+        <result column="DESC" property="desc" jdbcType="VARCHAR" />
+    </resultMap>
+    <resultMap id="TreeResult" class="com.threey.guard.manage.domain.TreeNode">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+        <result column="TYPE" property="type" jdbcType="INTEGER" />
+    </resultMap>
+
+    <!--区域管理-->
+    <select id="findArea" resultMap="AreaResult" parameterClass="Area">
+        SELECT * FROM mj_area m
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="id">
+                m.id = #id#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="name">
+                m.NAME LIKE '%$name$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="parentId">
+                m.PARENT_ID = #parentId#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="type">
+                m.TYPE = #type#
+            </isNotEmpty>
+        </dynamic>
+    </select>
+
+    <select id="findTreeNode" resultMap="TreeResult" parameterClass="java.util.Map">
+        SELECT * FROM mj_area m
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="parentId">
+                m.PARENT_ID = #parentId#
+            </isNotEmpty>
+            <!--<isNotEmpty prepend="AND" property="company">
+                m.id IN (SELECT manager_province FROM manager_user WHERE manager_company=#company# group BY manager_province)
+            </isNotEmpty>-->
+            <isNotEmpty prepend="AND" property="province">
+                m.id = #province#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="city">
+                m.id = #city#
+            </isNotEmpty>
+        </dynamic>
+    </select>
+
+    <select id="findCommunityTreeNode" resultMap="TreeResult" parameterClass="java.util.Map">
+        SELECT name,id,3 type FROM mj_community
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="parentId">
+                county=#parentId#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="company">
+                create_user IN (SELECT mid FROM manager_user where manager_company=#company#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="residentail">
+                id IN (SELECT community FROM mj_residential WHERE id=#residentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+
+    <select id="findResidentailTreeNode" resultMap="TreeResult" parameterClass="java.util.Map">
+        SELECT name,id,4 type FROM mj_residential
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="parentId">
+                community=#parentId#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="company">
+                create_user IN (SELECT mid FROM manager_user where manager_company=#company#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="residentail">
+                id=#residentail#
+            </isNotEmpty>
+        </dynamic>
+    </select>
+
+    <select id="findBuildTreeNode" resultMap="TreeResult" parameterClass="java.lang.String">
+        SELECT name,id,5 type FROM mj_build_unit WHERE type = 1 AND residentail_id=#parentId#
+    </select>
+
+    <select id="findUnitTreeNode" resultMap="TreeResult" parameterClass="java.lang.String">
+        SELECT name,id,6 type FROM mj_build_unit WHERE type = 2 AND parent_id=#parentId#
+    </select>
+</sqlMap>

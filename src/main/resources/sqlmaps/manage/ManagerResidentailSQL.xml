@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerResidentailSQL">
+    <typeAlias alias="Residentail" type="com.threey.guard.manage.domain.Residentail"/>
+    <resultMap id="ResidentailResult" class="com.threey.guard.manage.domain.Residentail">
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+        <result column="PROVINCE" property="province" jdbcType="VARCHAR" />
+        <result column="CITY" property="city" jdbcType="VARCHAR" />
+        <result column="COUNTY" property="county" jdbcType="VARCHAR" />
+        <result column="CONTENT" property="content" jdbcType="VARCHAR" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+        <result column="COMMUNITY" property="community" jdbcType="VARCHAR" />
+        <result column="WY_COMPANY" property="wyCompany" jdbcType="VARCHAR" />
+        <result column="WY_TELPHONE" property="wyTelphone" jdbcType="VARCHAR" />
+        <result column="WY_PERSON" property="wyPerson" jdbcType="VARCHAR" />
+        <result column="WY_PHONE" property="wyPhone" jdbcType="VARCHAR" />
+        <result column="ADDRESS" property="address" jdbcType="VARCHAR" />
+        <result column="FLAGE" property="flage" jdbcType="INT" />
+    </resultMap>
+    <!--小区管理-->
+    <insert id="insert" parameterClass="Residentail">
+        INSERT INTO mj_residential(id,name,province,city,county,community,wy_company,wy_telphone,wy_person,wy_phone,address,flage,create_user)
+        VALUES (#id#,#name#,#province#,#city#,#county#,#community#,#wyCompany#,#wyTelphone#,#wyPerson#,#wyPhone#,#address#,#flage#,#createUser#)
+    </insert>
+    <select id="queryOne" parameterClass="java.lang.String" resultMap="ResidentailResult">
+        select * from mj_residential where id = #id#
+    </select>
+    <select id="list" resultMap="ResidentailResult" parameterClass="Residentail">
+        SELECT id,name,province,city,county,content,create_date,(select t1.name from mj_community t1 where t1.id=community)community,wy_company,wy_telphone,wy_person,wy_phone,address,flage FROM mj_residential
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="name">
+                name LIKE '%$name$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="community">
+                community = #community#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                community IN (SELECT id FROM mj_community WHERE province=#createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                community IN (SELECT id FROM mj_community WHERE city=#createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                id = #createUserResidentail#
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <select id="count" parameterClass="Residentail" resultClass="int">
+        SELECT count(1) FROM mj_residential
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="name">
+                name LIKE '%$name$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="community">
+                community = #community#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                community IN (SELECT id FROM mj_community WHERE province=#createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                community IN (SELECT id FROM mj_community WHERE city=#createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                id = #createUserResidentail#
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <update id="update" parameterClass="Residentail">
+        UPDATE mj_residential
+        <dynamic prepend="SET">
+            <isNotEmpty prepend="," property="name">
+                name = #name#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="community">
+                community = #community#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="wyCompany">
+                wy_company = #wyCompany#
+            </isNotEmpty>
+            <isEmpty prepend="," property="wyCompany">
+                wy_company = ''
+            </isEmpty>
+            <isNotEmpty prepend="," property="wyTelphone">
+                wy_telphone = #wyTelphone#
+            </isNotEmpty>
+            <isEmpty prepend="," property="wyTelphone">
+                wy_telphone = ''
+            </isEmpty>
+            <isNotEmpty prepend="," property="wyPerson">
+                wy_person = #wyPerson#
+            </isNotEmpty>
+            <isEmpty prepend="," property="wyPerson">
+                wy_person = ''
+            </isEmpty>
+            <isNotEmpty prepend="," property="wyPhone">
+                wy_phone = #wyPhone#
+            </isNotEmpty>
+            <isEmpty prepend="," property="wyPhone">
+                wy_phone = ''
+            </isEmpty>
+            <isNotEmpty prepend="," property="address">
+                address = #address#
+            </isNotEmpty>
+            <isEmpty prepend="," property="address">
+                address = ''
+            </isEmpty>
+            <isNotEmpty prepend="," property="flage">
+                flage = #flage#
+            </isNotEmpty>
+        </dynamic>
+        WHERE id = #id#
+    </update>
+    <delete id="delete" parameterClass="java.lang.String">
+        DELETE FROM mj_residential WHERE id = #residentailId#
+    </delete>
+    <select id="queryResidentail" resultMap="ResidentailResult">
+        SELECT id,name,province,city,county,content,create_date,(select t1.name from mj_community t1 where t1.id=community)community,wy_company,wy_telphone,wy_person,wy_phone,address,flage FROM mj_residential
+    </select>
+    <select id="queryResidentailByCommunity" resultMap="ResidentailResult" parameterClass="java.lang.String">
+        SELECT id,name,province,city,county,content,create_date,(select t1.name from mj_community t1 where t1.id=community)community,wy_company,wy_telphone,wy_person,wy_phone,address,flage FROM mj_residential WHERE community=#community#
+    </select>
+</sqlMap>

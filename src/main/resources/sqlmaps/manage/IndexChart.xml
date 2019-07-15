@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="IndexChartSql" >
+<select id="queryOpenRecord" parameterClass="java.util.List" resultClass="java.util.HashMap">
+   select mr.name,temp.num,temp.time,temp.residentail  from mj_residential mr left join (
+select count(1) num,t.residentail,t.time from (
+                                                select
+                                                  date_format(create_date, '%Y-%m-%d') time,
+                                                  residentail
+                                                from mj_open_record
+                                              ) t
+where time in
+
+    <iterate conjunction ="," open="(" close=")">
+        <![CDATA[
+              #days[]#
+            ]]>
+    </iterate>
+
+group by t.residentail,t.time
+  ) temp
+on  temp.residentail = mr.id
+</select>
+<select id="queryOpenRecordByParam" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+   select mr.name,temp.num,temp.time,temp.residentail  from mj_residential mr left join (
+select count(1) num,t.residentail,t.time from (
+                                                select
+                                                  date_format(create_date, '%Y-%m-%d') time,
+                                                  residentail
+                                                from mj_open_record
+                                              ) t
+where time in ($days$)
+group by t.residentail,t.time
+  ) temp
+on  temp.residentail = mr.id
+<isNotEmpty property="company" >
+    where mr.id in
+    (select r.id from mj_residential r where r.create_user
+      in (select mid from manager_user where manager_company = #company#))
+</isNotEmpty>
+    <isNotEmpty property="res" >
+        where mr.id = #res#
+    </isNotEmpty>
+
+</select>
+
+
+    <select id="getWarn" parameterClass="java.util.List" resultClass="java.util.HashMap">
+       select mr.name,temp.num,temp.time,temp.residentail  from mj_residential mr
+  left join (
+              select count(1) num,t.residentail,t.time from (
+                      select
+                        date_format(mwr.create_date, '%Y-%m-%d') time,
+                        mb.residentail_id                        residentail
+                      from mj_warn_record mwr, mj_device md, mj_build_unit mb
+                      where mwr.device_id = md.device_id and md.unit = mb.id
+                    ) t
+   where time in
+        <iterate conjunction ="," open="(" close=")">
+            <![CDATA[
+              #days[]#
+            ]]>
+        </iterate>
+    group by t.residentail,t.time
+ ) temp
+    on  temp.residentail = mr.id
+    </select>
+    <select id="getWarnByParam" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+       select mr.name,temp.num,temp.time,temp.residentail  from mj_residential mr
+  left join (
+              select count(1) num,t.residentail,t.time from (
+                      select
+                        date_format(mwr.create_date, '%Y-%m-%d') time,
+                        mb.residentail_id                        residentail
+                      from mj_warn_record mwr, mj_device md, mj_build_unit mb
+                      where mwr.device_id = md.device_id and md.unit = mb.id
+                    ) t
+   where time in ( $days$ )
+    group by t.residentail,t.time
+ ) temp  on  temp.residentail = mr.id
+        <isNotEmpty property="company" >
+            where mr.id in
+            (select r.id from mj_residential r where r.create_user
+            in (select mid from manager_user where manager_company = #company#))
+        </isNotEmpty>
+        <isNotEmpty property="res" >
+            where mr.id = #res#
+        </isNotEmpty>
+    </select>
+
+
+    <select id="openType"  resultClass="java.util.HashMap">
+        select count(1) num,t.open_type openType  from  mj_open_record t group by t.open_type
+    </select>
+
+    <select id="deviceStatus"  resultClass="java.util.HashMap">
+        select t.name,count(mo.device_id) online ,count(1) allCount from (
+    select md.device_id,mr.name from mj_device md ,mj_build_unit mb,mj_residential mr
+    where md.unit = mb.id and mb.residentail_id = mr.id) t
+    left join mj_online_device mo on t.device_id = mo.device_id
+    group by t.name order by  t.name
+    </select>
+
+
+
+    <select id="openTypeByParam"  parameterClass="java.util.HashMap"  resultClass="java.util.HashMap">
+        select count(1) num,t.open_type openType  from  mj_open_record t
+        <isNotEmpty property="company" >
+            where t.residentail in
+            (select r.id from mj_residential r where r.create_user
+            in (select mid from manager_user where manager_company = #company#))
+        </isNotEmpty>
+        <isNotEmpty property="res" >
+            where t.residentail = #res#
+        </isNotEmpty>
+        group by t.open_type
+    </select>
+
+    <select id="deviceStatusByParam" parameterClass="java.util.HashMap"   resultClass="java.util.HashMap">
+        select t.name,count(mo.device_id) online ,count(1) allCount from (
+    select md.device_id,mr.name from mj_device md ,mj_build_unit mb,mj_residential mr
+    where md.unit = mb.id and mb.residentail_id = mr.id
+        <isNotEmpty property="company" >
+            and mr.id in
+            (select r.id from mj_residential r where r.create_user
+            in (select mid from manager_user where manager_company = #company#))
+        </isNotEmpty>
+        <isNotEmpty property="res" >
+            and mr.id = #res#
+        </isNotEmpty>
+    ) t
+    left join mj_online_device mo on t.device_id = mo.device_id
+    group by t.name order by  t.name
+
+    </select>
+</sqlMap>

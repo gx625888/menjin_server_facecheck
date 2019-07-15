@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerUserSQL">
+	<typeAlias alias="ManagerUser" type="com.threey.guard.base.domain.ManagerUser"/>
+	<typeAlias alias="ManagementMode" type="com.threey.guard.manage.domain.ManagementMode"/>
+	<typeAlias alias="ManagerRecord" type="com.threey.guard.manage.domain.ManagerRecord"/>
+	<resultMap id="ManagerUserResult" class="com.threey.guard.base.domain.ManagerUser">
+		<result column="MID" property="mid" jdbcType="VARCHAR" />
+		<result column="USER_ID" property="userId" jdbcType="VARCHAR" />
+		<result column="IS_ROOT_USER" property="isRootUser" jdbcType="VARCHAR" />
+		<result column="IS_M_ROOT_USER" property="isMRootUser" jdbcType="VARCHAR" />
+		<result column="STORE_NUMBER" property="storeNumber" jdbcType="VARCHAR" />
+		<result column="NAME" property="name" jdbcType="VARCHAR" />
+		<result column="PASSWORD" property="password" jdbcType="VARCHAR" />
+		<result column="ADDRESS" property="address" jdbcType="VARCHAR" />
+		<result column="PHONE" property="phone" jdbcType="VARCHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="VARCHAR" />
+		<result column="IS_DELETE" property="isDelete" jdbcType="VARCHAR" />
+		<result column="TYPE" property="type" jdbcType="VARCHAR" />
+		<result column="CITY_ID" property="cityId" jdbcType="VARCHAR" />
+		<result column="AREA_ID" property="areaId" jdbcType="VARCHAR" />
+		<result column="Enterprise_Logo" property="enterpriseLogo" jdbcType="VARCHAR" />
+		<result column="Enterprise_BannerLogo" property="enterpriseBannerLogo" jdbcType="VARCHAR" />
+		<result column="Parent_userId" property="parentUserId" jdbcType="VARCHAR"/>
+		<result column="WX_QR_CODE" property="wxQrCode" jdbcType="VARCHAR"/>
+		<result column="STATUS" property="status" jdbcType="VARCHAR"/>
+		<result column="ENDTIME" property="endTime" jdbcType="VARCHAR"/>
+		<result column="manager_province" property="managerProvince" jdbcType="VARCHAR"/>
+		<result column="manager_city" property="managerCity" jdbcType="VARCHAR"/>
+		<result column="manager_type" property="managerType" jdbcType="INTEGER"/>
+		<result column="manager_company" property="managerCompany" jdbcType="VARCHAR"/>
+		<result column="manager_residentail" property="managerResidentail" jdbcType="VARCHAR"/>
+
+		<result column="manager_provincename" property="managerProvinceName" jdbcType="VARCHAR"/>
+		<result column="manager_cityname" property="managerCityName" jdbcType="VARCHAR"/>
+		<result column="manager_companyname" property="managerCompanyName" jdbcType="VARCHAR"/>
+		<result column="manager_residentailname" property="managerResidentailName" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<select id="findManagementMode" parameterClass="ManagementMode" resultClass="ManagementMode">
+		select mu.MID as mid,mu.TAKEAWAY_FLAG as takeaway_flag,mu.DINNER_FLAG as dinner_flag,mu.FAST_FOOD_FLAG as fast_food_flag,mu.UPDATE_TIME as update_time
+		from m_management_mode mu 
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="mid">
+				MID=#mid#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="getManagerRecordList" parameterClass="ManagerRecord" resultClass="ManagerRecord">	   
+        SELECT id,MID,startTime,endTime,creatTime FROM manager_record where mid =#mid# ORDER BY creatTime DESC LIMIT 3
+	</select>	
+	
+	<insert id ="addManagerRecord" parameterClass="ManagerRecord">
+		INSERT INTO manager_record(id,MID,startTime,endTime,creatTime) 
+		VALUES(#id#,#mid#,#startTime#,#endTime#,#creatTime#)
+	</insert>
+	
+
+	
+	<select id="getNoteUserList" parameterClass="ManagerUser" resultClass="ManagerUser">
+	   select MID AS mid,PHONE AS phone from manager_user where IS_M_ROOT_USER ='1' and STATUS ='0'
+	</select>
+		
+	<select id="findManagerUser" parameterClass="ManagerUser" resultMap="ManagerUserResult">
+		select mu.*,mc.company_name manager_companyname ,ma.name manager_provincename,
+		maa.name manager_cityname,mr.name manager_residentailname
+		from manager_user mu
+		left join mj_mange_compay mc on mc.id = mu.manager_company
+		left join mj_area ma on ma.id= mu.manager_province
+		left join mj_area maa on maa.id= mu.manager_city
+		left join mj_residential mr on mr.id = mu.manager_residentail
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="mid">
+				mu.MID = #mid#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="name">
+				mu.NAME LIKE '%$name$%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="userId">
+				mu.USER_ID = #userId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="password">
+				mu.PASSWORD = #password#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isRootUser">
+				mu.IS_ROOT_USER = #isRootUser#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isMRootUser">
+				mu.IS_M_ROOT_USER = #isMRootUser#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isDelete">
+				mu.IS_DELETE = #isDelete#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="storeNumber">
+				mu.STORE_NUMBER = #storeNumber#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="phone">
+				mu.PHONE = #phone#				
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="cityId">
+				mu.CITY_ID=#cityId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="areaId">
+				mu.AREA_ID=#areaId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="parentUserId">
+				mu.Parent_userId=#parentUserId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="sTime">
+				mu.ENDTIME <![CDATA[>=]]> #sTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="eTime">
+				mu.ENDTIME <![CDATA[<=]]> #eTime#
+			</isNotEmpty>
+		</dynamic>
+		ORDER BY mu.CREATE_TIME DESC
+	</select>
+	
+	
+	<select id="getManagerUserCount" parameterClass="ManagerUser" resultClass="int">
+		select count(*) from manager_user mu
+		/*left join areas a on a.id = mu.AREA_ID and a.MID=mu.MID
+		left join city c on c.id = mu.CITY_ID and mu.MID=c.MID
+		left join store_info si on si.number=mu.STORE_NUMBER and si.MID=mu.MID*/
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="mid">
+				mu.MID = #mid#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="name">
+				mu.NAME LIKE '%$name$%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="userId">
+				mu.USER_ID = #userId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="password">
+				mu.PASSWORD = #password#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isRootUser">
+				mu.IS_ROOT_USER = #isRootUser#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isMRootUser">
+				mu.IS_M_ROOT_USER = #isMRootUser#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isDelete">
+				mu.IS_DELETE = #isDelete#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="storeNumber">
+				mu.STORE_NUMBER = #storeNumber#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="phone">
+				mu.PHONE = #phone#				
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="cityId">
+				mu.CITY_ID=#cityId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="areaId">
+				mu.AREA_ID=#areaId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="parentUserId">
+				mu.Parent_userId=#parentUserId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="sTime">
+				mu.ENDTIME <![CDATA[>=]]> #sTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="eTime">
+				mu.ENDTIME <![CDATA[<=]]> #eTime#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<insert id ="addManagerUser" parameterClass="ManagerUser">
+		INSERT INTO manager_user(MID,USER_ID,IS_ROOT_USER,IS_M_ROOT_USER,STORE_NUMBER,NAME,PASSWORD,ADDRESS,PHONE,
+		CREATE_TIME,IS_DELETE,TYPE,CITY_ID,AREA_ID,Enterprise_Logo,Parent_userId) VALUES(#mid#,#userId#,#isRootUser#,#isMRootUser#,#storeNumber#,#name#,#password#,#address#,#phone#,#createTime#,0,#type#,#cityId#,#areaId#,#enterpriseLogo#,#parentUserId#)
+	</insert>
+	
+	<update id ="updateManagerUser" parameterClass="ManagerUser">
+		UPDATE manager_user
+		<dynamic prepend="SET">
+		   <isNotEmpty prepend="," property="storeNumber">
+		      STORE_NUMBER = #storeNumber#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="name">
+		      NAME=#name#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="address">
+		     ADDRESS=#address#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="phone">
+		     PHONE=#phone#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="type">
+		     TYPE=#type#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="cityId">
+		     CITY_ID=#cityId#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="areaId">
+		     AREA_ID=#areaId#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="enterpriseLogo">
+		     Enterprise_Logo=#enterpriseLogo#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="enterpriseBannerLogo">
+		     Enterprise_BannerLogo=#enterpriseBannerLogo#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="parentUserId">
+		     Parent_userId=#parentUserId#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="password">
+		     PASSWORD=#password#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="wxQrCode">
+		     WX_QR_CODE=#wxQrCode#
+		   </isNotEmpty>
+		   <isNotEmpty prepend="," property="status">
+		     STATUS=#status#
+		   </isNotEmpty>
+		    <isNotEmpty prepend="," property="endTime">
+		     ENDTIME=#endTime#
+		   </isNotEmpty>
+		</dynamic>
+		WHERE MID=#mid# AND USER_ID = #userId# 
+	</update>
+	
+	<delete id ="delManagerUser" parameterClass="ManagerUser">
+		DELETE FROM  manager_user
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="mid">
+				MID=#mid#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="userId">
+				USER_ID = #userId#
+			</isNotEmpty>
+		</dynamic>
+	</delete>
+	
+	<delete id ="delManagerRecord" parameterClass="java.lang.String">
+		DELETE FROM  manager_record where MID=#mid#
+	</delete>
+	
+	<delete id ="delChildManagerUser" parameterClass="ManagerUser">
+		DELETE FROM  manager_user
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="mid">
+				MID=#mid#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="userId">
+				Parent_userId=#userId#
+			</isNotEmpty>
+		</dynamic>
+	</delete>
+	<select id ="selChildManagerUser" parameterClass="ManagerUser" resultMap="ManagerUserResult">
+		SELECT * FROM  manager_user
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="mid">
+				MID=#mid#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="userId">
+				Parent_userId=#userId#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<update id ="setPwd" parameterClass="ManagerUser">
+		UPDATE manager_user SET PASSWORD = #password# WHERE MID=#mid# AND USER_ID = #userId#
+	</update>
+	<!--查询商户号 -->
+	<select id="getMid" parameterClass="ManagerUser" resultClass="ManagerUser">
+		SELECT T.MID as mid ,T.NAME AS name from manager_user T WHERE T.IS_M_ROOT_USER = 1 
+	</select>
+	
+	<select id="findManUser" resultClass="ManagerUser" >	   		
+       SELECT mid,status FROM manager_user WHERE IS_M_ROOT_USER ='1'
+	</select>
+	<select id="getManUser" resultClass="ManagerUser" >	   		
+       SELECT mid,status FROM manager_user WHERE IS_M_ROOT_USER ='1' AND mid =#mid#
+	</select>
+	
+	<select id="findManRecord" parameterClass="java.lang.String" resultClass="ManagerRecord">
+       SELECT id,MID,startTime,endTime,creatTime FROM manager_record where mid =#mid# ORDER BY creatTime DESC LIMIT 1    
+	</select>
+
+
+
+
+	<select id="count" parameterClass="ManagerUser" resultClass="java.lang.Integer">
+
+		select count(1) from manager_user mu where IS_DELETE =0
+			<isNotEmpty prepend="AND" property="mid">
+				mu.MID = #mid#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="name">
+				mu.NAME LIKE '%$name$%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="userId">
+				mu.USER_ID = #userId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="password">
+				mu.PASSWORD = #password#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isRootUser">
+				mu.IS_ROOT_USER = #isRootUser#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isMRootUser">
+				mu.IS_M_ROOT_USER = #isMRootUser#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isDelete">
+				mu.IS_DELETE = #isDelete#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="storeNumber">
+				mu.STORE_NUMBER = #storeNumber#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="phone">
+				mu.PHONE = #phone#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="cityId">
+				mu.CITY_ID=#cityId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="areaId">
+				mu.AREA_ID=#areaId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="parentUserId">
+				mu.Parent_userId=#parentUserId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="sTime">
+				mu.ENDTIME <![CDATA[>=]]> #sTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="eTime">
+				mu.ENDTIME <![CDATA[<=]]> #eTime#
+			</isNotEmpty>
+
+			<isNotEmpty prepend="and" property="managerCompany">
+				mu.manager_company = #managerCompany#
+			</isNotEmpty>
+	</select>
+
+	<select id="list" parameterClass="ManagerUser" resultMap="ManagerUserResult">
+		select mu.*,mc.company_name manager_companyname ,ma.name manager_provincename,
+		maa.name manager_cityname,mr.name manager_residentailname
+		from manager_user mu
+		left join mj_mange_compay mc on mc.id = mu.manager_company
+		left join mj_area ma on ma.id= mu.manager_province
+		left join mj_area maa on maa.id= mu.manager_city
+		left join mj_residential mr on mr.id = mu.manager_residentail
+		where mu.IS_DELETE =0
+			<isNotEmpty prepend="AND" property="mid">
+				mu.MID = #mid#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="name">
+				mu.NAME LIKE '%$name$%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="userId">
+				mu.USER_ID = #userId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="password">
+				mu.PASSWORD = #password#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isRootUser">
+				mu.IS_ROOT_USER = #isRootUser#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isMRootUser">
+				mu.IS_M_ROOT_USER = #isMRootUser#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="isDelete">
+				mu.IS_DELETE = #isDelete#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="storeNumber">
+				mu.STORE_NUMBER = #storeNumber#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="phone">
+				mu.PHONE = #phone#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="cityId">
+				mu.CITY_ID=#cityId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="areaId">
+				mu.AREA_ID=#areaId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="parentUserId">
+				mu.Parent_userId=#parentUserId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="sTime">
+				mu.ENDTIME <![CDATA[>=]]> #sTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="eTime">
+				mu.ENDTIME <![CDATA[<=]]> #eTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="managerCompany">
+				mu.manager_company = #managerCompany#
+			</isNotEmpty>
+		ORDER BY mu.CREATE_TIME DESC
+	</select>
+
+
+	<!-- 新增 -->
+	<insert id="insert" parameterClass="ManagerUser">
+			INSERT INTO manager_user(MID,USER_ID,IS_ROOT_USER,IS_M_ROOT_USER,STORE_NUMBER,NAME,PASSWORD,ADDRESS,PHONE,
+		CREATE_TIME,IS_DELETE,TYPE,CITY_ID,AREA_ID,Enterprise_Logo,Parent_userId,
+		manager_company,manager_province,manager_city,manager_residentail,manager_type)
+		VALUES(#mid#,#userId#,#isRootUser#,#isMRootUser#,#storeNumber#,#name#,
+		#password#,#address#,#phone#,#createTime#,0,#type#,#cityId#,#areaId#,#enterpriseLogo#,#parentUserId#,
+		#managerCompany#,#managerProvince#,#managerCity#,#managerResidentail#,#managerType#)
+	</insert>
+	<!-- 删除 -->
+	<delete id="delete" parameterClass="java.lang.String">
+		DELETE FROM manager_user WHERE mid = #id#
+	</delete>
+	<!-- 逻辑删除 -->
+	<update id="fackDel" parameterClass="java.lang.String">
+	  update manager_user set IS_DELETE=1 where mid=#id#
+	</update>
+
+	<!-- 修改 -->
+	<update id="update" parameterClass="ManagerUser">
+		UPDATE manager_user
+		<dynamic prepend="SET">
+			<isNotEmpty prepend="," property="storeNumber">
+				STORE_NUMBER = #storeNumber#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="name">
+				NAME=#name#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="address">
+				ADDRESS=#address#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="phone">
+				PHONE=#phone#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="type">
+				TYPE=#type#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="cityId">
+				CITY_ID=#cityId#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="areaId">
+				AREA_ID=#areaId#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="enterpriseLogo">
+				Enterprise_Logo=#enterpriseLogo#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="enterpriseBannerLogo">
+				Enterprise_BannerLogo=#enterpriseBannerLogo#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="parentUserId">
+				Parent_userId=#parentUserId#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="password">
+				PASSWORD=#password#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="wxQrCode">
+				WX_QR_CODE=#wxQrCode#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="status">
+				STATUS=#status#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="endTime">
+				ENDTIME=#endTime#
+			</isNotEmpty>
+		</dynamic>
+		WHERE MID=#mid# AND USER_ID = #userId#
+	</update>
+	
+	
+</sqlMap>

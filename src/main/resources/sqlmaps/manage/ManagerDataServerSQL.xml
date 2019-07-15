@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerDataServerSQL">
+    <typeAlias alias="OpenRecord" type="com.threey.guard.manage.domain.OpenRecord"/>
+    <typeAlias alias="WarnRecord" type="com.threey.guard.manage.domain.WarnRecord"/>
+    <typeAlias alias="Plan" type="com.threey.guard.manage.domain.Plan"/>
+    <resultMap id="OpenRecordResult" class="com.threey.guard.manage.domain.OpenRecord">
+        <result column="STREET" property="street" jdbcType="VARCHAR" />
+        <result column="COMMUNITY" property="community" jdbcType="VARCHAR" />
+        <result column="RESIDENTAIL" property="residentail" jdbcType="VARCHAR" />
+        <result column="BUILD" property="build" jdbcType="VARCHAR" />
+        <result column="UNIT" property="unit" jdbcType="VARCHAR" />
+        <result column="DOOR_NAME" property="doorName" jdbcType="VARCHAR" />
+        <result column="OPEN_TYPE" property="openType" jdbcType="INTEGER" />
+        <result column="PERSON_NAME" property="personName" jdbcType="VARCHAR" />
+        <result column="PERSON_PHONE" property="personPhone" jdbcType="VARCHAR" />
+        <result column="CARD_ID" property="cardId" jdbcType="VARCHAR" />
+        <result column="PICTURE" property="picture" jdbcType="VARCHAR" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    </resultMap>
+    <resultMap id="WarnRecordResult" class="com.threey.guard.manage.domain.WarnRecord">
+        <result column="STREET" property="street" jdbcType="VARCHAR" />
+        <result column="COMMUNITY" property="community" jdbcType="VARCHAR" />
+        <result column="RESIDENTAIL" property="residentail" jdbcType="VARCHAR" />
+        <result column="BUILD" property="build" jdbcType="VARCHAR" />
+        <result column="UNIT" property="unit" jdbcType="VARCHAR" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+        <result column="WARN_TYPE" property="warnType" jdbcType="INTEGER" />
+        <result column="DEVICE_ID" property="deviceId" jdbcType="VARCHAR" />
+    </resultMap>
+    <resultMap id="PlanResult" class="com.threey.guard.manage.domain.Plan">
+        <result column="PLAN_TYPE" property="planType" jdbcType="INTEGER" />
+        <result column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="REMIND_TYPE" property="remindType" jdbcType="INTEGER" />
+        <result column="REMIND_CYCLE" property="remindCycle" jdbcType="INTEGER" />
+        <result column="REMIND_RANGE" property="remindRange" jdbcType="INTEGER" />
+        <result column="FREQUENCY" property="frequency" jdbcType="INTEGER" />
+    </resultMap>
+    <resultMap id="CommunityResult" class="com.threey.guard.manage.domain.Community">
+        <result property="id" column="ID" jdbcType="VARCHAR"/>
+        <result property="name" column="NAME" jdbcType="VARCHAR"/>
+    </resultMap>
+    <resultMap id="ResidentailResult" class="com.threey.guard.manage.domain.Residentail">
+        <result property="id" column="ID" jdbcType="VARCHAR"/>
+        <result property="name" column="NAME" jdbcType="VARCHAR"/>
+    </resultMap>
+    <resultMap id="BuildUnitResult" class="com.threey.guard.manage.domain.BuildUnit">
+        <result property="id" column="ID" jdbcType="VARCHAR"/>
+        <result property="name" column="NAME" jdbcType="VARCHAR"/>
+    </resultMap>
+    <resultMap id="HouseResult" class="com.threey.guard.manage.domain.House">
+        <result property="id" column="ID" jdbcType="VARCHAR"/>
+        <result property="name" column="NAME" jdbcType="VARCHAR"/>
+    </resultMap>
+    <!--开门记录-->
+    <!--<select id="selectOpenRecord" resultMap="OpenRecordResult" parameterClass="java.util.HashMap">
+        select m7.street,m7.name community,
+        (select name from mj_residential where id = m8.residentail_id) residentail,
+        (SELECT name from mj_build_unit where id in(select parent_id from mj_build_unit where id in(select parent_id from mj_build_unit where id=m5.id)))build,
+        (select name from mj_build_unit where id in(select parent_id from mj_build_unit where id=m5.id)) unit,m2.name door_name,
+        m1.open_type,(select name from mj_person where id = m4.person_id) person_name,
+        (select phone from mj_person where id = m4.person_id)person_phone,m3.CARD_ID,m1.picture,
+        DATE_FORMAT(m1.create_date,'%Y-%m-%d %H:%i:%s') create_date
+        from mj_open_record m1,mj_house_unit m2,r_person_card m3,r_house_person m4,mj_build_unit m5,mj_residential m6,mj_community m7,(SELECT * FROM mj_build_unit WHERE type=2) m8
+        where m1.card_no = m3.CARD_ID and m3.person_id = m4.person_id and m4.house_id = m2.id and m2.unit_id = m5.id AND m5.parent_id=m8.id and m8.residentail_id = m6.id and m6.community = m7.id
+        <isNotEmpty property="community" prepend="AND">
+            m7.id=#community#
+        </isNotEmpty>
+        <isNotEmpty property="residentail" prepend="AND">
+            m6.id=#residentail#
+        </isNotEmpty>
+        <isNotEmpty property="build" prepend="AND">
+            m5.id in(select id from mj_build_unit where parent_id in(select id from mj_build_unit where parent_id = #build#))
+        </isNotEmpty>
+        <isNotEmpty property="unit" prepend="AND">
+            m5.id IN (select id from mj_build_unit where parent_id = #unit#)
+        </isNotEmpty>
+        <isNotEmpty property="doorName" prepend="AND">
+            m2.name like '%$doorName$%'
+        </isNotEmpty>
+        <isNotEmpty property="personName" prepend="AND">
+            m4.person_id in(select id from mj_person where name like '%$personName$%')
+        </isNotEmpty>
+        <isNotEmpty property="personPhone" prepend="AND">
+            m4.person_id in(select id from mj_person where phone = #personPhone#)
+        </isNotEmpty>
+        <isNotEmpty property="cardNo" prepend="AND">
+            m4.person_id in(select id from mj_person where card_no = #cardNo#)
+        </isNotEmpty>
+        <isNotEmpty property="openType" prepend="AND">
+            m1.open_type=#openType#
+        </isNotEmpty>
+        <isNotEmpty property="sDate" prepend="AND">
+            m1.create_date &gt; #sDate#
+        </isNotEmpty>
+        <isNotEmpty property="eDate" prepend="AND">
+            m1.create_date &lt; #eDate#
+        </isNotEmpty>
+        order BY create_date DESC
+    </select>-->
+    <select id="selectOpenRecord" resultMap="OpenRecordResult" parameterClass="java.util.HashMap">
+        SELECT b.street,b.name community,a.name residentail,build_name build,
+        unit_name unit,house_name door_name,
+        t.open_type,persion_name person_name,
+        persion_phone person_phone,
+        (SELECT card_id FROM mj_card WHERE CARD_ID=t.card_no) card_id,t.picture,
+        DATE_FORMAT(t.create_date,'%Y-%m-%d %H:%i:%s') create_date FROM mj_open_record t,mj_residential a,mj_community b
+        WHERE t.residentail = a.id AND a.community = b.id
+        <isNotEmpty property="community" prepend="AND">
+            t.residentail IN (SELECT id FROM mj_residential WHERE community = #community#)
+        </isNotEmpty>
+        <isNotEmpty property="residentail" prepend="AND">
+            t.residentail = #residentail#
+        </isNotEmpty>
+        <isNotEmpty property="build" prepend="AND">
+            t.build = #build#
+        </isNotEmpty>
+        <isNotEmpty property="unit" prepend="AND">
+            t.unit = #unit#
+        </isNotEmpty>
+        <isNotEmpty property="doorName" prepend="AND">
+            t.house_name LIKE '%$doorName$%'
+        </isNotEmpty>
+        <isNotEmpty property="personName" prepend="AND">
+            t.persion_name LIKE '%$personName$%'
+        </isNotEmpty>
+        <isNotEmpty property="personPhone" prepend="AND">
+            t.persion_phone LIKE '%$personPhone$%'
+        </isNotEmpty>
+        <isNotEmpty property="cardNo" prepend="AND">
+            t.person_id in(select id from mj_person where card_no = #cardNo#)
+        </isNotEmpty>
+        <isNotEmpty property="openType" prepend="AND">
+            t.open_type=#openType#
+        </isNotEmpty>
+        <isNotEmpty property="sDate" prepend="AND">
+            t.create_date &gt; #sDate#
+        </isNotEmpty>
+        <isNotEmpty property="eDate" prepend="AND">
+            t.create_date &lt; #eDate#
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserCompany">
+            t.residentail in (SELECT id FROM mj_residential WHERE create_user IN (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#))
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserProvince">
+            t.residentail IN (SELECT manager_residentail FROM manager_user WHERE manager_province = #createUserProvince# GROUP BY manager_residentail)
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserCity">
+            t.residentail IN (SELECT manager_residentail FROM manager_user WHERE manager_city = #createUserCity# GROUP BY manager_residentail)
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserResidentail">
+            t.residentail = #createUserResidentail#
+        </isNotEmpty>
+        order BY create_date DESC
+    </select>
+    <select id="openRecordCount" parameterClass="java.util.HashMap" resultClass="int">
+        SELECT COUNT(1) FROM mj_open_record t,mj_residential a,mj_community b
+        WHERE t.residentail = a.id AND a.community = b.id
+        <isNotEmpty property="community" prepend="AND">
+            t.residentail IN (SELECT id FROM mj_residential WHERE community = #community#)
+        </isNotEmpty>
+        <isNotEmpty property="residentail" prepend="AND">
+            t.residentail = #residentail#
+        </isNotEmpty>
+        <isNotEmpty property="build" prepend="AND">
+            t.build = #build#
+        </isNotEmpty>
+        <isNotEmpty property="unit" prepend="AND">
+            t.unit = #unit#
+        </isNotEmpty>
+        <isNotEmpty property="doorName" prepend="AND">
+            t.house_name LIKE '%$doorName$%'
+        </isNotEmpty>
+        <isNotEmpty property="personName" prepend="AND">
+            t.persion_name LIKE '%$personName$%'
+        </isNotEmpty>
+        <isNotEmpty property="personPhone" prepend="AND">
+            t.persion_phone LIKE '%$personPhone$%'
+        </isNotEmpty>
+        <isNotEmpty property="cardNo" prepend="AND">
+            t.person_id in(select id from mj_person where card_no = #cardNo#)
+        </isNotEmpty>
+        <isNotEmpty property="openType" prepend="AND">
+            t.open_type=#openType#
+        </isNotEmpty>
+        <isNotEmpty property="sDate" prepend="AND">
+            t.create_date &gt; #sDate#
+        </isNotEmpty>
+        <isNotEmpty property="eDate" prepend="AND">
+            t.create_date &lt; #eDate#
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserCompany">
+            t.residentail in (SELECT id FROM mj_residential WHERE create_user IN (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#))
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserProvince">
+            t.residentail IN (SELECT manager_residentail FROM manager_user WHERE manager_province = #createUserProvince# GROUP BY manager_residentail)
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserCity">
+            t.residentail IN (SELECT manager_residentail FROM manager_user WHERE manager_city = #createUserCity# GROUP BY manager_residentail)
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserResidentail">
+            t.residentail = #createUserResidentail#
+        </isNotEmpty>
+    </select>
+    <!--报警管理-->
+    <select id="selectWarnRecord" resultMap="WarnRecordResult" parameterClass="java.util.HashMap">
+        select m4.street,m4.name community,
+        (select name from mj_residential where id = m2.residentail_id) residentail,
+        (select name from mj_build_unit where id in(select parent_id from mj_build_unit where id=m2.id))build,
+        (select name from mj_build_unit where id = m2.id) unit,
+        date_format(m1.create_date,'%Y-%m-%d %H:%i:%s')create_date,m1.warn_type,m1.device_id
+        from mj_warn_record m1,mj_build_unit m2,mj_residential m3,mj_community m4,mj_device m5
+        where m1.device_id=m5.device_id and m5.unit=m2.id and m2.residentail_id=m3.id and m3.community=m4.id
+        <isNotEmpty property="community" prepend="AND">
+            m4.id=#community#
+        </isNotEmpty>
+        <isNotEmpty property="residentail" prepend="AND">
+            m3.id=#residentail#
+        </isNotEmpty>
+        <isNotEmpty property="build" prepend="AND">
+            m2.id in(select id from mj_build_unit where parent_id = #build#)
+        </isNotEmpty>
+        <isNotEmpty property="unit" prepend="AND">
+            m2.id=#unit#
+        </isNotEmpty>
+        <isNotEmpty property="warnType" prepend="AND">
+            m1.warn_type=#warnType#
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserCompany">
+            m3.id in (SELECT id FROM mj_residential WHERE create_user IN (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#))
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserProvince">
+            m3.id IN (SELECT manager_residentail FROM manager_user WHERE manager_province = #createUserProvince# GROUP BY manager_residentail)
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserCity">
+            m3.id IN (SELECT manager_residentail FROM manager_user WHERE manager_city = #createUserCity# GROUP BY manager_residentail)
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserResidentail">
+            m3.id = #createUserResidentail#
+        </isNotEmpty>
+    </select>
+    <select id="warnRecordCount" parameterClass="java.util.HashMap" resultClass="int">
+        select count(1)
+        from mj_warn_record m1,mj_build_unit m2,mj_residential m3,mj_community m4,mj_device m5
+        where m1.device_id=m5.device_id and m5.unit=m2.id and m2.residentail_id=m3.id and m3.community=m4.id
+        <isNotEmpty property="community" prepend="AND">
+            m4.id=#community#
+        </isNotEmpty>
+        <isNotEmpty property="residentail" prepend="AND">
+            m3.id=#residentail#
+        </isNotEmpty>
+        <isNotEmpty property="build" prepend="AND">
+            m2.id in(select id from mj_build_unit where parent_id = #build#)
+        </isNotEmpty>
+        <isNotEmpty property="unit" prepend="AND">
+            m2.id=#unit#
+        </isNotEmpty>
+        <isNotEmpty property="warnType" prepend="AND">
+            m1.warn_type=#warnType#
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserCompany">
+            m3.id in (SELECT id FROM mj_residential WHERE create_user IN (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#))
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserProvince">
+            m3.id IN (SELECT manager_residentail FROM manager_user WHERE manager_province = #createUserProvince# GROUP BY manager_residentail)
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserCity">
+            m3.id IN (SELECT manager_residentail FROM manager_user WHERE manager_city = #createUserCity# GROUP BY manager_residentail)
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="createUserResidentail">
+            m3.id = #createUserResidentail#
+        </isNotEmpty>
+    </select>
+    <!--计划管理-->
+    <insert id="insert" parameterClass="Plan">
+        INSERT INTO mj_plan(plan_type,remind_type,remind_cycle,remind_range,frequency,create_user)
+        VALUES (#planType#,#remindType#,#remindCycle#,#remindRange#,#frequency#,#createUser#)
+    </insert>
+    <select id="queryOne" parameterClass="java.lang.String" resultMap="PlanResult">
+        select id,plan_type,remind_type,remind_cycle,remind_range,frequency from mj_plan where id = #id#
+    </select>
+    <select id="listByMap" resultMap="PlanResult" parameterClass="java.util.HashMap">
+        SELECT id,plan_type,remind_type,remind_cycle,remind_range,frequency FROM mj_plan
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="planType">
+                plan_type = #planType#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="remindType">
+                remind_type = #remindType#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="remindCycle">
+                remind_cycle = #remindCycle#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="remindRange">
+                remind_range = #remindRange#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="frequency">
+                frequency = #frequency#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                create_user IN (SELECT mid FROM manaager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <select id="countByMap" resultClass="int" parameterClass="java.util.HashMap">
+        SELECT count(*) FROM mj_plan
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="planType">
+                plan_type = #planType#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="remindType">
+                remind_type = #remindType#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="remindCycle">
+                remind_cycle = #remindCycle#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="remindRange">
+                remind_range = #remindRange#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="frequency">
+                frequency = #frequency#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_province = #createUserProvince#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                create_user IN (SELECT mid FROM manager_user WHERE manager_city = #createUserCity#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                create_user IN (SELECT mid FROM manaager_user WHERE manager_residentail = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <update id="update" parameterClass="Plan">
+        UPDATE mj_plan
+        <dynamic prepend="SET">
+            <isNotEmpty prepend="," property="planType">
+                plan_type = #planType#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="remindType">
+                remind_type = #remindType#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="remindCycle">
+                remind_cycle = #remindCycle#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="remindRange">
+                remind_range = #remindRange#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="frequency">
+                frequency = #frequency#
+            </isNotEmpty>
+        </dynamic>
+        WHERE id = #id#
+    </update>
+    <delete id="delete" parameterClass="java.lang.String">
+        DELETE FROM mj_plan WHERE id = #id#
+    </delete>
+    <!--区域关联-->
+    <select id="queryCommunity" resultMap="CommunityResult" parameterClass="java.util.Map" >
+        select id,name from mj_community
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                province = #createUserProvince#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                city = #createUserCity#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                id in (SELECT community FROM mj_residential where id = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <select id="queryResidentail" resultMap="ResidentailResult" parameterClass="java.lang.Integer" >
+        select id,name from mj_residential WHERE community=#id#
+    </select>
+    <select id="queryBuild" resultMap="BuildUnitResult" parameterClass="java.lang.String" >
+        select id,name from mj_build_unit where type=1 and residentail_id = #id#
+    </select>
+    <select id="queryUnit" resultMap="BuildUnitResult" parameterClass="java.lang.Integer" >
+        select id,name from mj_build_unit where type=2 and parent_id = #id#
+    </select>
+    <select id="queryHouse" resultMap="HouseResult" parameterClass="java.lang.Integer" >
+        select a.id,a.name from mj_house_unit a,mj_build_unit b where b.id=a.unit_id and b.parent_id = #id#
+    </select>
+</sqlMap>

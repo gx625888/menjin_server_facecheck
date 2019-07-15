@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="CommonCardSql" >
+<typeAlias alias="CommonCard" type="com.threey.guard.manage.domain.CommonCard" />
+<resultMap id="GetAccountsResult" class="com.threey.guard.api.domain.AccountData">
+    <result property="id" column="ID" jdbcType="VARCHAR"/>
+    <result property="card" column="CARD" jdbcType="VARCHAR"/>
+    <result property="no" column="NO" jdbcType="VARCHAR"/>
+    <result property="phone" column="PHONE" jdbcType="VARCHAR"/>
+    <result property="isAdd" column="ISADD" jdbcType="INT"/>
+    <result property="jurisdiction" column="JURISDICTION" jdbcType="INT"/>
+</resultMap>
+<select id="queryOne" parameterClass="java.lang.String" resultClass="CommonCard">
+      select  id,CARD_ID cardId,user_name userName,user_phone userPhone,user_card userCard,residentail
+    from  mj_card_common where id = #id#
+</select>
+
+<select id="count" parameterClass="CommonCard" resultClass="java.lang.Integer">
+
+    select count(1) from mj_card_common where residentail = #residentail#
+
+</select>
+
+<select id="list" parameterClass="CommonCard" resultClass="CommonCard">
+   select  id,CARD_ID cardId,user_name userName,user_phone userPhone,user_card userCard,residentail
+    from  mj_card_common
+   where   residentail = #residentail# order by create_date desc
+</select>
+
+    <select id="listByCard" parameterClass="java.lang.String" resultClass="CommonCard">
+   select  id,CARD_ID cardId,user_name userName,user_phone userPhone,user_card userCard,residentail
+    from  mj_card_common
+   where   CARD_ID = #cardId# order by create_date desc
+</select>
+
+
+<!-- 新增 -->
+	<insert id="insert" parameterClass="CommonCard">
+		INSERT INTO mj_card_common(CARD_ID,user_name,user_phone,user_card,residentail)
+    VALUES (#cardId#,#userName#,#userPhone#,#userCard#,#residentail#)
+	</insert>
+	<!-- 删除 -->
+	<delete id="delete" parameterClass="java.lang.String">
+		DELETE FROM mj_card_common WHERE id = #id#
+	</delete>
+    <!-- 修改 -->
+    <update id="update" parameterClass="CommonCard">
+          update mj_card_common
+          set CARD_ID=#cardId#,user_name=#userName#,user_phone = #userPhone#,user_card=#userCard#,residentail=#residentail#
+          where id=#id#
+    </update>
+
+    <select id="getCommonAccounts" parameterClass="java.lang.String" resultMap="GetAccountsResult">
+        SELECT 1 id,e.CARD_ID card, 0 isAdd,
+              1 no, e.user_phone phone,2 JURISDICTION,a.device_id
+        FROM mj_device a,mj_build_unit b, mj_card_common e,mj_residential r
+      WHERE a.unit = b.id AND b.residentail_id=r.id and r.id = e.residentail
+      AND a.device_id=#devinceId#
+    </select>
+
+</sqlMap>

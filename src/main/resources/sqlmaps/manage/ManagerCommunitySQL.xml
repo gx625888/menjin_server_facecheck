@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ManagerCommunitySQL">
+    <typeAlias alias="Community" type="com.threey.guard.manage.domain.Community"/>
+    <resultMap id="CommunityResult" class="com.threey.guard.manage.domain.Community">
+        <result property="id" column="ID" jdbcType="VARCHAR"/>
+        <result property="name" column="NAME" jdbcType="VARCHAR"/>
+        <result property="street" column="STREET" jdbcType="VARCHAR"/>
+        <result property="province" column="PROVINCE" jdbcType="VARCHAR"/>
+        <result property="city" column="CITY" jdbcType="VARCHAR"/>
+        <result property="county" column="COUNTY" jdbcType="VARCHAR"/>
+        <result property="remark" column="REMARK" jdbcType="VARCHAR"/>
+    </resultMap>
+    <!--社区管理-->
+    <insert id="insert" parameterClass="Community">
+        INSERT INTO mj_community(name,street,province,city,county,remark,create_user) VALUES (#name#,#street#,#province#,#city#,#county#,#remark#,#createUser#);
+    </insert>
+    <select id="queryOne" parameterClass="java.lang.String" resultMap="CommunityResult">
+        select id,name,street,province,city,county,remark from mj_community where id = #id#
+    </select>
+    <select id="list" resultMap="CommunityResult" parameterClass="Community">
+        SELECT id,name,street,(select t1.name from mj_area t1 where t1.type=0 and t1.id=province)province,(select t2.name from mj_area t2 where t2.type=1 and t2.id=city)city,(select t3.name from mj_area t3 where t3.type=2 and t3.id=county)county,remark FROM mj_community
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="id">
+                id = #id#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="name">
+                name LIKE '%$name$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="street">
+                street LIKE '%$street$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="province">
+                province = #province#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="city">
+                city = #city#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="county">
+                county = #county#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                province = #createUserProvince#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                city = #createUserCity#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserResidentail">
+                id in (SELECT community FROM mj_residential where id = #createUserResidentail#)
+            </isNotEmpty>
+        </dynamic>
+        ORDER BY id
+    </select>
+    <select id="count" resultClass="int" parameterClass="Community">
+        SELECT count(*) FROM mj_community
+        <dynamic prepend="WHERE">
+            <isNotEmpty prepend="AND" property="id">
+                id = #id#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="name">
+                name LIKE '%$name$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="province">
+                province = #province#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="city">
+                city = #city#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="county">
+                province = #county#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCompany">
+                create_user in (SELECT mid FROM manager_user WHERE manager_company=#createUserCompany#)
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserProvince">
+                province = #createUserProvince#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="createUserCity">
+                city = #createUserCity#
+            </isNotEmpty>
+        </dynamic>
+    </select>
+    <update id="update" parameterClass="Community">
+        UPDATE mj_community
+        <dynamic prepend="SET">
+            <isNotEmpty prepend="," property="name">
+                name = #name#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="street">
+                street = #street#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="province">
+                province = #province#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="city">
+                city = #city#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="county">
+                county = #county#
+            </isNotEmpty>
+            <isNotEmpty prepend="," property="remark">
+                remark = #remark#
+            </isNotEmpty>
+            <isEmpty prepend="," property="remark">
+                remark = ''
+            </isEmpty>
+        </dynamic>
+        WHERE id = #id#
+    </update>
+    <delete id="delete" parameterClass="java.lang.String">
+        DELETE FROM mj_community WHERE id = #id#
+    </delete>
+
+    <select id="getResidentCount" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+        SELECT count(1) FROM mj_residential WHERE community=#community#
+    </select>
+
+    <select id="checkHasChild" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+        SELECT count(1) FROM mj_build_unit WHERE residentail_id=#id#
+    </select>
+
+</sqlMap>

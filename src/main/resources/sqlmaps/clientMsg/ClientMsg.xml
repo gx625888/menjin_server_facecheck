@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="SendMsgSql" >
+<typeAlias alias="MsgBean" type="com.threey.guard.clientmsg.domain.MsgBean" />
+
+
+<select id="query" parameterClass="java.util.HashMap" resultClass="MsgBean">
+  select id,device_id deviceId,msg_type msgType,status,try_count tryCount,opt_user optUser
+  from client_msg where try_count &lt; #tryCount# and status!=1
+   order by  id limit  #limit#
+</select>
+
+
+<!-- 新增 -->
+	<insert id="insert" parameterClass="MsgBean">
+		INSERT INTO client_msg(device_id, msg_type, status, try_count, opt_user)
+VALUES (#deviceId#,#msgType#,#status#,#tryCount#,#optUser#)
+	</insert>
+
+    <insert id ="insertBatch" parameterClass="java.util.List" >
+        <![CDATA[
+         insert into client_msg
+             (device_id, msg_type, opt_user)
+            values
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+              #{list[].deviceId:VARCHAR}#, #{list[].msgType:int}#, #{list[].optUser:VARCHAR}#
+            )
+            ]]>
+        </iterate>
+    </insert >
+
+<!-- 修改 -->
+<update id="update" parameterClass="MsgBean">
+	  update client_msg set status=#status# ,try_count = #tryCount#,update_date = current_timestamp where id=#id#
+</update>
+
+    <insert id ="insertOnline" parameterClass="java.util.List" >
+        <![CDATA[
+         insert into mj_online_device
+             (device_id)
+            values
+        ]]>
+        <iterate conjunction ="," >
+            <![CDATA[
+            (
+             #devices[]#
+            )
+            ]]>
+        </iterate>
+    </insert >
+
+    <delete id="deleteOnline">
+        delete from mj_online_device
+    </delete>
+
+</sqlMap>
