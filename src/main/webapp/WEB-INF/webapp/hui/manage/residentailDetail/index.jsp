@@ -176,11 +176,11 @@
 
         var html= "";
 
-        html+='<li class="layui-timeline-item">' +
+        html+='<li class="layui-timeline-item" style="border-bottom:1px gray dashed;padding-bottom:25px;">' +
             '                            <i class="layui-icon layui-timeline-axis"></i>' +
             '                            <div class="layui-timeline-content layui-text">' +
             '                                <div class="layui-timeline-title">' +obj.name+
-            '                                    <div class="layui-btn-group" style="float: right">' +
+            '                              <br /><div class="layui-btn-group" style="float: right;">' +
             '                                        <button onclick="viewUnit('+obj.id+','+buildId+')" class="layui-btn layui-btn-primary layui-btn-sm">' +
             '                                            <i class="layui-icon">&#xe642;</i>' +
             '                                        </button>' +
@@ -190,7 +190,7 @@
             '                                    </div>' +
             '                                </div>' +
             '                            </div>' +
-            '                        </li>';
+            '                        </li><br/>';
         return html;
     }
     var currOpenIndex;
