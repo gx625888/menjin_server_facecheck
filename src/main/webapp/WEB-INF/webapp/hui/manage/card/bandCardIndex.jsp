@@ -5,7 +5,7 @@
 <html>
 <head>
     <%@ include file="../../common/resource.jsp" %>
-    <title>小区管理</title>
+    <title>用户卡管理</title>
 </head>
 <body>
 <nav class="breadcrumb">

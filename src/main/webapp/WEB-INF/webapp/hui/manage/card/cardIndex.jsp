@@ -5,7 +5,7 @@
 <html>
 <head>
     <%@ include file="../../common/resource.jsp" %>
-    <title>小区管理</title>
+    <title>用户卡管理</title>
 </head>
 <body>
 <nav class="breadcrumb">
@@ -49,6 +49,7 @@
 
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-xs" lay-event="noband">解绑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 
 
@@ -70,11 +71,12 @@
             ,cols: [[ //表头
                 {field: 'id', title: 'ID', width:80, sort: false, fixed: 'left', hide:true}
                 ,{field: 'cardId', title: '卡片编码', width:150}
+                ,{field: 'person', title: '绑定住户', width:150}
                 ,{field: 'cardType', title: '卡片类型', width:150,templet:"#r_cardType"}
                 ,{field: 'invalidDate', title: '失效时间', width:150}
                 ,{field: 'cardStatus', title: '卡片状态', width:150,templet:"#r_cardStatus"}
                 ,{field: 'remark', title: '备注', width:150}
-                ,{field: 'wealth', title: '操作', width: 150, sort: false,toolbar:'#barDemo'}
+                ,{field: 'wealth', title: '操作', width: 170, sort: false,toolbar:'#barDemo'}
             ]]
 
         });
@@ -117,6 +119,31 @@
                       name: '123'
                       ,title: 'xxx'
                   });*/
+            } else if(layEvent === 'noband'){ //解绑
+                if(obj.data.person == null){
+                    layer.msg("该卡未被绑定！")
+                    return false;
+                }
+                layer.confirm('确认解绑?', function(index){
+                    $.ajax({
+                        type:"post",
+                        url :"${ctx}/card/toNoBand.shtml",
+                        data:{id:obj.data.cardId},
+                        success:function(data){
+                            layer.close(index);
+                            if (data.ret==0){
+                                layer.msg("操作成功!")
+                                tableObj.reload();
+                            } else{
+                                layer.msg("服务器开小差了!");
+                            }
+                        },
+                        error:function(){
+                            layer.close(index);
+                            layer.msg("服务器开小差了!");
+                        }
+                    });
+                });
             }
         });
     });
