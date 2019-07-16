@@ -503,7 +503,7 @@
     }
 
     function bindDevice(){
-        layer_show("绑定设备",'${ctx}/mangeHouse/bindDevice.shtml?unitId=${unitId}','700','500');
+        layer_show("绑定设备",'${ctx}/mangeHouse/bindDevice.shtml?unitId=${unitId}','900','700');
     }
     function unBindDevice(){
         layer.confirm("确定解绑设备?",function(){

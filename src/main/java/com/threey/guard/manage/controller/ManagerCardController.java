@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 @Controller
@@ -177,6 +178,21 @@ public class ManagerCardController {
         List<Residentail> residentails = this.managerResidentailService.getResidentailList();
         //request.setAttribute("residentails",residentails);
         List<TreeNode> list = this.managerCardService.treeNodes(loginUser);
+		ListIterator li = list.listIterator();
+    	while(li.hasNext()){
+    		TreeNode li_obj = (TreeNode) li.next();
+    		if(li_obj.getType() != 6) {
+        		li_obj.setSpread(true);
+    		}
+    		List<TreeNode> child_list = li_obj.getChildren();
+    		ListIterator child_li = child_list.listIterator();
+    		while(child_li.hasNext()){
+        		TreeNode child_li_obj = (TreeNode) child_li.next();
+        		if(child_li_obj.getType() != 6) {
+        			child_li_obj.setSpread(true);
+        		}
+    		}
+    	}
         JSONArray jsonArray = JSONArray.fromObject(list);
         System.out.println(jsonArray.toString());
         request.setAttribute("treeNode",JSONArray.fromObject(list));

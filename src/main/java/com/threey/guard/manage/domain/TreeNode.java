@@ -14,6 +14,8 @@ public class TreeNode implements Serializable{
     private String id;
 
     private int type;
+    
+    private boolean spread;
 
     private List<TreeNode> children;
 
@@ -56,4 +58,12 @@ public class TreeNode implements Serializable{
     public void setChildren(List<TreeNode> children) {
         this.children = children;
     }
+
+	public boolean isSpread() {
+		return spread;
+	}
+
+	public void setSpread(boolean spread) {
+		this.spread = spread;
+	}
 }

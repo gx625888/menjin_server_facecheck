@@ -131,7 +131,7 @@ from mj_device d where d.unit in (select id from mj_build_unit where type = 2 an
         ifnull((select t.name from mj_build_unit t where t.type=1 and t.id=d.unit),'未绑定') unit
         from mj_device d where d.unit is null
             <isNotEmpty prepend="AND" property="deviceId">
-                d.device_id = #deviceId#
+                d.device_id like '%$deviceId$%'
             </isNotEmpty>
             <isNotEmpty prepend="AND" property="deviceType">
                 d.device_type = #deviceType#

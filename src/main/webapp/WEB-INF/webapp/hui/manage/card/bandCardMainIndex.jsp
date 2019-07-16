@@ -47,6 +47,21 @@
 </script>
 
 <script type="text/javascript">
+function showloading(t) {
+	if (t) {
+		//如果是true则显示loading
+		console.log(t);
+		loading = layer.load(1, {
+			shade: [0.1, '#fff'] //0.1透明度的白色背景 
+		});
+	} else {//如果是false则关闭loading
+		console.log("关闭loading层:" + t);
+		layer.closeAll('loading');
+	}
+}
+
+
+
     var tableObj;
     layui.select
     layui.use('table', function(){
@@ -56,6 +71,7 @@
 			,limit: 50
             ,height: 'full-120'
             ,even:true
+            ,loading: true
             ,url: '${ctx}/card/queryBandCardNew.shtml?p_areaId=${areaId}&p_areaType=${areaType}' //数据接口
             ,page: true //开启分页
             ,method: 'post'

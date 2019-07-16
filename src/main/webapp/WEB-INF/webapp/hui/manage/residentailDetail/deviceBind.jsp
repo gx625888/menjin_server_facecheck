@@ -5,7 +5,7 @@
 <html>
 <head>
     <%@ include file="../../common/resource.jsp" %>
-    <title>小区管理</title>
+    <title>设备绑定</title>
 </head>
 <body>
 <div class="page-container">
@@ -61,7 +61,7 @@
             ,cols: [[ //表头
                 {type:'radio'}
                 ,{field: 'id', title: 'ID', width:80, sort: false, fixed: 'left', hide:true}
-                ,{field: 'deviceId', title: '设备编号', width:150}
+                ,{field: 'deviceId', title: '设备编号', width:170}
                 ,{field: 'deviceType', title: '设备类型', width:150,templet:"#r_deviceType"}
                 ,{field: 'residentail', title: '所属小区', width:150}
               //  ,{field: 'build', title: '所属楼栋', width:150}
@@ -87,7 +87,7 @@
 
 
     function query(){
-        var params = {p_devicId:$('#p_deviceId').val(),
+        var params = {p_deviceId:$('#p_deviceId').val(),
             p_deviceType:$('#p_deviceType').val(),
             p_deviceStatus:$('#p_deviceStatus').val(),
             p_residentail:$('#p_residentail').val()
