@@ -43,7 +43,7 @@
         var layer = layui.layer;
 
 
-        authtree.render('#LAY-auth-tree-index', initMenus(), {inputname: 'authids[]', layfilter: 'lay-check-auth', openall: true});
+        authtree.render('#LAY-auth-tree-index', initMenus(), {inputname: 'authids[]', layfilter: 'lay-check-auth', openall: false});
         form.on('submit(LAY-auth-tree-submit)', function(obj){
             var authids = authtree.getChecked('#LAY-auth-tree-index');
             $.ajax({
