@@ -82,7 +82,7 @@
                 ,{field: 'phone', title: '手机', width:150}
                 ,{field: 'cardType', title: '证件类型', width:150,templet:"#r_cardType"}
                 ,{field: 'cardNo', title: '证件编号', width:150}
-                ,{field: 'wealth', title: '操作', width: 150, sort: false,toolbar:'#barDemo'}
+                ,{field: 'wealth', title: '操作', width: 360, sort: false,toolbar:'#barDemo'}
             ]]
 
         });

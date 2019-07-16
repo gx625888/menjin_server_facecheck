@@ -46,6 +46,15 @@
         <result column="HOUSE" property="house" jdbcType="VARCHAR" />
     </resultMap>
 
+    <resultMap id="BandCardResultNew2" class="com.threey.guard.manage.domain.BandCard">
+        <result column="PERSON_ID" property="personId" jdbcType="VARCHAR" />
+        <result column="PERSON_NAME" property="personName" jdbcType="VARCHAR" />
+        <result column="PERSON_PHONE" property="personPhone" jdbcType="VARCHAR" />
+        <result column="HOUSE" property="house" jdbcType="VARCHAR" />
+        <result column="CARD_ID" property="cardId" jdbcType="VARCHAR" />
+        <result column="IS_BAND" property="bandStatus" jdbcType="VARCHAR" />
+    </resultMap>
+
     <!--发卡管理-->
     <insert id="insertAddCard" parameterClass="java.util.HashMap">
         INSERT INTO mj_add_card(residentail,add_num)
@@ -303,6 +312,26 @@
             WHERE   r4.id=r5.unit_id AND r5.id=r6.house_id AND r4.parent_id=#unit#
             )
         </isNotEmpty>
+    </select>
+    <select id="selectBandCardNew2" resultMap="BandCardResultNew2" parameterClass="java.util.HashMap">
+        select per.id PERSON_ID,per.name PERSON_NAME,per.phone PERSON_PHONE,hu.name HOUSE,pc.CARD_ID CARD_ID,if(pc.CARD_ID is null,'未绑定','已绑定') is_band from mj_person per
+			 left join r_person_card pc on pc.person_id = per.id
+			 right join r_house_person hp on hp.person_id = per.id 
+			 right join mj_house_unit hu on hu.id = hp.house_id 
+			 right join mj_build_unit bu on bu.id = hu.unit_id
+			 where bu.parent_id = #area#
+        <isNotEmpty prepend="AND" property="cardId">
+            pc.CARD_ID LIKE '%$cardId$%'
+        </isNotEmpty>
+        <isNotEmpty prepend="AND" property="personName">
+            per.name LIKE '%$personName$%'
+        </isNotEmpty>
+        <isEqual prepend="and" property="band" compareValue="0">
+        	pc.CARD_ID is null
+        </isEqual>
+        <isEqual prepend="and" property="band" compareValue="1">
+        	pc.CARD_ID is not null
+        </isEqual>
     </select>
     <select id="bandCardCount" parameterClass="java.util.HashMap" resultClass="int">
         select count(1) from mj_card a LEFT JOIN (SELECT * FROM r_person_card WHERE flag=0) b ON a.CARD_ID=b.CARD_ID

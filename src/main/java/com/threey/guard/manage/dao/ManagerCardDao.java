@@ -2,6 +2,7 @@ package com.threey.guard.manage.dao;
 
 import com.threey.guard.base.dao.CrudDAO;
 import com.threey.guard.manage.domain.AddCard;
+import com.threey.guard.manage.domain.BandCard;
 import com.threey.guard.manage.domain.Card;
 import org.springframework.stereotype.Repository;
 
@@ -37,6 +38,10 @@ public class ManagerCardDao extends CrudDAO<Card> {
 
     public List<Card> getBandCardListNew(Map map,int page,int pageSize){
         return (List<Card>)getSqlMapClientTemplate().queryForList("ManagerCardSQL.selectBandCardNew",map,page*pageSize,pageSize);
+    }
+    
+    public List<BandCard> getBandCardList2(Map map,int page,int pageSize){
+        return (List<BandCard>)getSqlMapClientTemplate().queryForList("ManagerCardSQL.selectBandCardNew2",map,page*pageSize,pageSize);
     }
 
     public int countBandCardNew(Map map){

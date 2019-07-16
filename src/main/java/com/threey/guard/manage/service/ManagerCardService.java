@@ -7,6 +7,7 @@ import com.threey.guard.manage.dao.ManagerCardDao;
 import com.threey.guard.manage.dao.ManagerCommunityDao;
 import com.threey.guard.manage.domain.AddCard;
 import com.threey.guard.manage.domain.Area;
+import com.threey.guard.manage.domain.BandCard;
 import com.threey.guard.manage.domain.Card;
 import com.threey.guard.manage.domain.TreeNode;
 import org.apache.log4j.Logger;
@@ -56,6 +57,10 @@ public class ManagerCardService extends CrudService<Card> {
 
     public List<Card> getBandCardListNew(Map map,int page,int pageSize){
         return managerCardDao.getBandCardListNew(map,page,pageSize);
+    }
+
+    public List<BandCard> getBandCardList2(Map map,int page,int pageSize){
+        return managerCardDao.getBandCardList2(map,page,pageSize);
     }
 
     public int countBandCardNew(Map map){

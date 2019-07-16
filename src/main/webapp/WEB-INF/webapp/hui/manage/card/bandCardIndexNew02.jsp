@@ -5,7 +5,7 @@
 <html>
 <head>
     <%@ include file="../../common/resource.jsp" %>
-    <title>小区管理</title>
+    <title>远程发卡管理-tree</title>
 </head>
 <body>
 <nav class="breadcrumb">
@@ -38,6 +38,14 @@
 </script>
 
 <script type="text/javascript">
+
+$("body").on("mousedown",".layui-tree a",function(){
+	if(!$(this).siblings('ul').length){
+		$(".layui-tree a cite").css('color','#333');
+		$(this).find('cite').css('color','red');
+		$(this).find('cite').css('font-weight','bolder');
+	}
+});
 
     layui.tree({
         elem: '#treeStart' //传入元素选择器

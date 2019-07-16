@@ -5,7 +5,7 @@
 <html>
 <head>
     <%@ include file="../../common/resource.jsp" %>
-    <title>小区管理</title>
+    <title>远程绑卡管理</title>
 </head>
 <body>
 <div class="page-container">
@@ -19,8 +19,8 @@
             <div class="layui-input-inline">
                 <select name="p_band" id="p_band" class="select" style="height: 30px;width: 150px" lay-search="">
                     <option value="">全部</option>
-                    <option value="未绑定">未绑定</option>
-                    <option value="已绑定">已绑定</option>
+                    <option value="0">未绑定</option>
+                    <option value="1">已绑定</option>
                 </select>
             </div>
         </div>
@@ -53,7 +53,7 @@
         var table = layui.table;
         tableObj = table.render({
             elem: '#dataTable'
-
+			,limit: 50
             ,height: 'full-120'
             ,even:true
             ,url: '${ctx}/card/queryBandCardNew.shtml?p_areaId=${areaId}&p_areaType=${areaType}' //数据接口
@@ -61,16 +61,12 @@
             ,method: 'post'
             ,cols: [[ //表头
                 {field: 'personId', title: 'ID', width:80, sort: false, fixed: 'left',hide:true}
-                ,{field: 'person', title: '居民姓名', width:100}
+                ,{field: 'personName', title: '居民姓名', width:100}
                 // ,{field: 'personCard', title: '居民证件号', width:150}
                 ,{field: 'personPhone', title: '居民手机号', width:150}
                 ,{field: 'cardId', title: '门禁卡号', width:150}
-                ,{field: 'cardStatus', title: '卡片状态', width:90,templet:"#r_cardStatus"}
-                ,{field: 'residentail', title: '小区', width:150}
-                ,{field: 'build', title: '楼栋', width:75}
-                ,{field: 'unit', title: '单元', width:75}
                 ,{field: 'house', title: '房间号', width:95, sort: true}
-                ,{field: 'remark', title: '绑定状态', width:90,templet:"#r_bandStatus"}
+                ,{field: 'bandStatus', title: '绑定状态', width:90,templet:"#r_bandStatus"}
                 ,{field: 'wealth', title: '操作', width: 220, sort: false,toolbar:'#barDemo'}
             ]]
 
@@ -231,10 +227,10 @@
     {{# if(d.cardStatus == 3){ }}停用{{# }}}
 </script>
 <script type="text/html" id="r_bandStatus">
-{{#  if(d.remark === '未绑定'){ }}
-    <span style="color: #ff0000;">{{ d.remark }}</span>
+{{#  if(d.bandStatus === '未绑定'){ }}
+    <span style="color: #ff0000;">{{ d.bandStatus }}</span>
   {{#  } else { }}
-    {{ d.remark }}
+    {{ d.bandStatus }}
   {{#  } }}
 </script>
 </body>

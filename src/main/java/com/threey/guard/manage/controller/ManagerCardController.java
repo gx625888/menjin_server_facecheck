@@ -6,6 +6,7 @@ import com.threey.guard.base.service.LogAuditService;
 import com.threey.guard.base.util.Constants;
 import com.threey.guard.base.util.StringUtil;
 import com.threey.guard.manage.domain.AddCard;
+import com.threey.guard.manage.domain.BandCard;
 import com.threey.guard.manage.domain.Card;
 import com.threey.guard.manage.domain.Residentail;
 import com.threey.guard.manage.domain.TreeNode;
@@ -205,7 +206,7 @@ public class ManagerCardController {
 
     @RequestMapping(value = "/queryBandCardNew.shtml",method = {RequestMethod.GET,RequestMethod.POST})
     @ResponseBody
-    public DataTable.Resp<Card> queryBandCardNew(DataTable.Req p,HttpServletRequest request){
+    public DataTable.Resp<BandCard> queryBandCardNew(DataTable.Req p,HttpServletRequest request){
         Map<String,Object> map = new HashMap<String,Object>();
         map.put("cardId",request.getParameter("p_cardId"));
         map.put("personName",request.getParameter("p_personName"));
@@ -228,9 +229,9 @@ public class ManagerCardController {
         }else {
             map.put("unit",request.getParameter("p_areaId"));
         }
-        List<Card> addCards = managerCardService.getBandCardListNew(map,p.getPage()-1,p.getLimit());
+        List<BandCard> addCards = managerCardService.getBandCardList2(map,p.getPage()-1,p.getLimit());
         int count = this.managerCardService.countBandCardNew(map);
-        return new DataTable.Resp<Card>(addCards,count,0);
+        return new DataTable.Resp<BandCard>(addCards,count,0);
     }
 
     @RequestMapping("/toAddBandCard.shtml")
