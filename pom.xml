@@ -29,7 +29,7 @@
         <com.google.code.gson.version>2.3</com.google.code.gson.version>
         <commons.fileupload.version>1.2.2</commons.fileupload.version>
         <commons.io.version>2.4</commons.io.version>
-        <quartz.version>2.2.1</quartz.version>
+        <quartz.version>2.3.2</quartz.version>
         <axis.version>1.4</axis.version>
         <commons.discovery.version>0.5</commons.discovery.version>
         <wsdl4j.version>1.6.2</wsdl4j.version>
