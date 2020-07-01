@@ -17,7 +17,7 @@
         <junit.version>4.12</junit.version>
         <slf4j.version>1.6.1</slf4j.version>
         <log4j.version>1.2.14</log4j.version>
-        <mysql.version>5.1.26</mysql.version>
+        <mysql.version>8.0.16</mysql.version>
         <spring.ibatis.version>2.0.8</spring.ibatis.version>
         <ibatis.sqlmap.version>2.3.4.726</ibatis.sqlmap.version>
         <cglib.version>2.2.2</cglib.version>
