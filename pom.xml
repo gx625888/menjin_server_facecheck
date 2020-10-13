@@ -14,7 +14,7 @@
         <jsp.api.version>2.1</jsp.api.version>
         <spring.version>4.1.2.RELEASE</spring.version>
         <ibatis.version>2.0.8</ibatis.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <slf4j.version>1.6.1</slf4j.version>
         <log4j.version>1.2.14</log4j.version>
         <mysql.version>5.1.26</mysql.version>
