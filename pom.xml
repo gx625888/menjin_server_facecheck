@@ -35,7 +35,7 @@
         <wsdl4j.version>1.6.2</wsdl4j.version>
         <activation.version>1.1.1</activation.version>
         <xmlbeans.version>2.6.0</xmlbeans.version>
-        <httpclient.version>4.3.6</httpclient.version>
+        <httpclient.version>4.5.13</httpclient.version>
         <spring-data-redis>1.4.1.RELEASE</spring-data-redis>
         <jedis>2.6.0</jedis>
         <jexcelapi.version>2.6</jexcelapi.version>
